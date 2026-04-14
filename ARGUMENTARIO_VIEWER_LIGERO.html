@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Argumentario LIGERO - Curso Wolters</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0f; color: #e8e8ed; overflow: hidden; height: 100vh; user-select: none; }
+  .topbar { position: fixed; top: 0; left: 0; right: 0; height: 52px; background: rgba(15,15,25,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 100; }
+  .topbar-title { font-size: 13px; font-weight: 500; color: #888; letter-spacing: 0.5px; text-transform: uppercase; }
+  .topbar-module { font-size: 12px; font-weight: 500; color: #aaa; }
+  .topbar-counter { font-size: 14px; font-weight: 600; color: #fff; background: rgba(236,72,153,0.15); border: 1px solid rgba(236,72,153,0.3); padding: 4px 14px; border-radius: 20px; }
+  .topbar-keys { font-size: 11px; color: #555; }
+  .topbar-keys kbd { display: inline-block; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 4px; padding: 2px 6px; font-family: inherit; font-size: 11px; color: #888; margin: 0 2px; }
+  .progress-bar { position: fixed; top: 52px; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.04); z-index: 100; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #ec4899, #f59e0b); transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+  .slides-viewport { position: fixed; top: 55px; left: 0; right: 0; bottom: 0; overflow: hidden; }
+  .slides-track { display: flex; height: 100%; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+  .slide { min-width: 100vw; height: 100%; display: flex; justify-content: center; align-items: flex-start; padding: 40px 60px; overflow-y: auto; }
+  .slide::-webkit-scrollbar { width: 6px; }
+  .slide::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+  .slide-inner { max-width: 820px; width: 100%; }
+  .slide-header { margin-bottom: 28px; padding-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .slide-number-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .module-badge { font-size: 11px; font-weight: 700; color: #fff; padding: 3px 10px; border-radius: 12px; letter-spacing: 0.5px; }
+  .mb-m1 { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+  .mb-m2 { background: linear-gradient(135deg, #10b981, #06b6d4); }
+  .mb-m3 { background: linear-gradient(135deg, #f59e0b, #f97316); }
+  .mb-m4 { background: linear-gradient(135deg, #ef4444, #f97316); }
+  .mb-m5 { background: linear-gradient(135deg, #a855f7, #ec4899); }
+  .module-label { font-size: 11px; font-weight: 500; color: #8888aa; letter-spacing: 0.3px; margin-bottom: 6px; }
+  .slide-number { font-size: 12px; font-weight: 600; color: #ec4899; text-transform: uppercase; letter-spacing: 1.5px; }
+  .slide-subtitle { font-size: 24px; font-weight: 600; color: #fff; line-height: 1.3; }
+  .slide-content p { font-size: 18px; line-height: 1.7; color: #e0e0e8; margin-bottom: 18px; }
+  .slide-content p em { color: #d4d4e0; font-style: italic; }
+  .slide-content strong { color: #fff; font-weight: 600; }
+  .slide-content .highlight { color: #fcd34d; font-weight: 500; }
+  .nav-arrow { position: fixed; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #888; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; z-index: 50; }
+  .nav-arrow:hover { background: rgba(236,72,153,0.15); border-color: rgba(236,72,153,0.4); color: #fff; }
+  .nav-arrow.disabled { opacity: 0.2; pointer-events: none; }
+  .nav-prev { left: 16px; } .nav-next { right: 16px; }
+  .minimap { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; padding: 6px 12px; background: rgba(15,15,25,0.9); border-radius: 20px; border: 1px solid rgba(255,255,255,0.06); z-index: 50; max-width: 90vw; overflow-x: auto; scrollbar-width: none; }
+  .minimap::-webkit-scrollbar { display: none; }
+  .minimap-dot { width: 8px; height: 8px; border-radius: 50%; cursor: pointer; transition: all 0.3s; flex-shrink: 0; }
+  .minimap-dot:hover { transform: scale(1.3); }
+  .minimap-dot.mod-1 { background: rgba(99,102,241,0.35); }
+  .minimap-dot.mod-2 { background: rgba(16,185,129,0.35); }
+  .minimap-dot.mod-3 { background: rgba(245,158,11,0.35); }
+  .minimap-dot.mod-4 { background: rgba(239,68,68,0.35); }
+  .minimap-dot.mod-5 { background: rgba(168,85,247,0.35); }
+  .minimap-dot.active { transform: scale(1.5); box-shadow: 0 0 8px currentColor; }
+  .minimap-dot.mod-1.active { background: #6366f1; }
+  .minimap-dot.mod-2.active { background: #10b981; }
+  .minimap-dot.mod-3.active { background: #f59e0b; }
+  .minimap-dot.mod-4.active { background: #ef4444; }
+  .minimap-dot.mod-5.active { background: #a855f7; }
+  .font-controls { display: flex; gap: 4px; align-items: center; }
+  .font-btn { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #888; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .font-btn:hover { background: rgba(236,72,153,0.15); color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-title">Argumentario LIGERO &mdash; Curso Wolters</span>
+  <span class="topbar-module" id="moduleLabel"></span>
+  <span class="topbar-counter" id="counter">1 / 49</span>
+  <div class="font-controls">
+    <button class="font-btn" onclick="changeFontSize(-1)">A-</button>
+    <button class="font-btn" onclick="changeFontSize(1)">A+</button>
+  </div>
+  <span class="topbar-keys"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> navegar</span>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+<div class="slides-viewport">
+  <div class="slides-track" id="track">
+
+<!-- ============ M1 ============ -->
+
+<div class="slide" data-module="1"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m1">M1</div><div class="slide-number">SLIDE 1</div></div><div class="module-label">M&oacute;dulo 1 &mdash; Diagn&oacute;stico Avanzado</div><div class="slide-subtitle">Apertura</div></div>
+  <div class="slide-content">
+    <p><em>Buenos d&iacute;as. Os lanzo una pregunta: cuando un cliente os dice &laquo;voy al banco a pedir un pr&eacute;stamo&raquo;, &iquest;qu&eacute; hac&eacute;is? Lo normal es preparar los papeles y entreg&aacute;rselos. No est&aacute; mal hecho, pero hoy os propongo otra forma de mirar eso mismo.</em></p>
+    <p><em>Esa contabilidad que le entreg&aacute;is al cliente la hab&eacute;is hecho <strong>vosotros</strong>. Conoc&eacute;is cada asiento, cada cuenta. Eso os coloca en una posici&oacute;n que nadie tiene: ni el banco, ni el asesor externo, ni el propio cliente.</em></p>
+    <p><em>Este m&oacute;dulo va de una idea muy concreta: convertir la contabilidad que ya hac&eacute;is en una <strong>herramienta de diagn&oacute;stico financiero</strong>. Y con eso pasar de asesor contable a <strong>consultor financiero estrat&eacute;gico</strong>.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="1"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m1">M1</div><div class="slide-number">SLIDE 2</div></div><div class="module-label">M&oacute;dulo 1</div><div class="slide-subtitle">Ya ten&eacute;is la materia prima</div></div>
+  <div class="slide-content">
+    <p><em>Vamos a empezar por algo que parece obvio pero que casi nadie ve: ya ten&eacute;is la materia prima m&aacute;s valiosa del an&aacute;lisis financiero. Los datos contables reales, actualizados, de empresas que conoc&eacute;is bien.</em></p>
+    <p><em>La diferencia con el banco es enorme: ellos trabajan con la informaci&oacute;n que el cliente les da en la solicitud. Vosotros ten&eacute;is <strong>la foto completa</strong>. Esa es vuestra ventaja competitiva. <strong>Solo os falta el m&eacute;todo</strong> para usarla.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="1"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m1">M1</div><div class="slide-number">SLIDE 3</div></div><div class="module-label">M&oacute;dulo 1</div><div class="slide-subtitle">El salto de valor</div></div>
+  <div class="slide-content">
+    <p><em>Hoy hac&eacute;is contabilidad e impuestos. Precio bajo, mucha presi&oacute;n, poca fidelidad del cliente. Ma&ntilde;ana pod&eacute;is hacer adem&aacute;s <strong>diagn&oacute;stico financiero profesional</strong>. Cuota mayor, cliente fiel, trabajo m&aacute;s interesante.</em></p>
+    <p><em>Lo interesante: mismo cliente, mismos datos, casi el mismo tiempo. Lo que cambia es <strong>c&oacute;mo lo present&aacute;is</strong>. Una hoja de c&aacute;lculo bien hecha se convierte en un informe que el cliente valora de otra manera.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="1"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m1">M1</div><div class="slide-number">SLIDE 4</div></div><div class="module-label">M&oacute;dulo 1</div><div class="slide-subtitle">S&iacute;ntoma vs Causa</div></div>
+  <div class="slide-content">
+    <p><em>El cliente ve s&iacute;ntomas: &laquo;me falta caja&raquo;, &laquo;el banco no me renueva&raquo;, &laquo;tengo que pedir un pr&eacute;stamo&raquo;. Nuestro trabajo no es resolver el s&iacute;ntoma &mdash; es encontrar <strong>la causa</strong>.</em></p>
+    <p><em>Hay 3 diagn&oacute;sticos posibles: problema de margen, problema de cobros, o problema de estructura financiera. Y cada uno tiene su <strong>instrumento distinto</strong>. Recetar antes de diagnosticar es mala praxis: en medicina y en finanzas.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="1"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m1">M1</div><div class="slide-number">SLIDE 5</div></div><div class="module-label">M&oacute;dulo 1</div><div class="slide-subtitle">Tipolog&iacute;a de necesidades</div></div>
+  <div class="slide-content">
+    <p><em>Hay cuatro tipos de necesidades financieras, y cada una tiene su instrumento &oacute;ptimo. Emparejarlo bien es la clave del asesoramiento.</em></p>
+    <p><em>Si es <strong>circulante</strong> (d&iacute;a a d&iacute;a) &rarr; p&oacute;liza de cr&eacute;dito, factoring o confirming. Si es <strong>inversi&oacute;n</strong> (m&aacute;quina, nave) &rarr; pr&eacute;stamo a plazo o leasing. Si es problema de <strong>estructura</strong> (demasiada deuda vieja) &rarr; renegociaci&oacute;n o carencia. Si es problema de <strong>margen</strong> (EBIT negativo) &rarr; no financiar, plan de viabilidad primero.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="1"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m1">M1</div><div class="slide-number">SLIDE 6</div></div><div class="module-label">M&oacute;dulo 1</div><div class="slide-subtitle">Las 10 preguntas del diagn&oacute;stico</div></div>
+  <div class="slide-content">
+    <p><em>Antes de mover un papel, hacemos un checklist r&aacute;pido de <strong>10 preguntas</strong>. No es burocracia: es el gui&oacute;n que evita recomendar mal.</em></p>
+    <p><em>Las primeras tres: <strong>&iquest;para qu&eacute; lo necesita, cu&aacute;nto y qu&eacute; le ofrece el banco?</strong>. Las siguientes tres miden la salud financiera: beneficio operativo, capacidad de pago y patrimonio neto. La s&eacute;ptima y octava comprueban que el <strong>plazo y el instrumento</strong> encajen. Las &uacute;ltimas dos son las m&aacute;s importantes: &iquest;qu&eacute; pasa si las ventas caen y hay plan B?</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="1"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m1">M1</div><div class="slide-number">SLIDE 7</div></div><div class="module-label">M&oacute;dulo 1</div><div class="slide-subtitle">El &aacute;rbol de decisi&oacute;n &middot; los 3 filtros</div></div>
+  <div class="slide-content">
+    <p><em>Tres filtros en orden. Si uno falla, paramos. No hay financiaci&oacute;n que arregle un problema que no es financiero.</em></p>
+    <p><em><strong>Filtro 1: EBIT positivo.</strong> Si la empresa pierde dinero operativo, financiar solo alarga la agon&iacute;a. <strong>Filtro 2: cobertura de la cuota &gt; 1,25</strong>. La empresa debe pagar la cuota con margen suficiente. Si no, hay que revisar plazo o importe. <strong>Filtro 3: patrimonio neto positivo</strong>. Si no lo est&aacute; &mdash; garant&iacute;as adicionales, aval SGR o hipotecario.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="1"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m1">M1</div><div class="slide-number">SLIDE 8</div></div><div class="module-label">M&oacute;dulo 1</div><div class="slide-subtitle">El error fatal &middot; financiar p&eacute;rdidas operativas</div></div>
+  <div class="slide-content">
+    <p><em>El error m&aacute;s caro que puede cometer un asesor es ayudar a conseguir un pr&eacute;stamo cuando el cliente <strong>pierde dinero operativo</strong>. Ese dinero solo alarga la quiebra y la hace m&aacute;s grande.</em></p>
+    <p><em>Saber decir NO cuando el cliente viene con prisa <strong>es vuestra profesionalidad</strong>. Y es lo que el cliente no olvida. A los 6 meses, cuando est&eacute; en crisis, recordar&aacute; al asesor que le par&oacute; a tiempo &mdash; y al que no.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="1"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m1">M1</div><div class="slide-number">SLIDE 9</div></div><div class="module-label">M&oacute;dulo 1</div><div class="slide-subtitle">3 claves para aplicar desde ma&ntilde;ana</div></div>
+  <div class="slide-content">
+    <p><em>Antes de los papeles, el <strong>diagn&oacute;stico</strong>. Las 10 preguntas y los 3 filtros. Solo eso ya cambia c&oacute;mo os ve el cliente.</em></p>
+    <p><em>Empareja siempre <strong>instrumento y necesidad</strong>. El circulante no se financia con pr&eacute;stamo a plazo. La inversi&oacute;n no se financia con p&oacute;liza.</em></p>
+    <p><em>Si el EBIT es negativo, <strong>no financi&eacute;is</strong>. Proponed plan de viabilidad. Es un servicio distinto y de m&aacute;s valor que preparar documentaci&oacute;n para un pr&eacute;stamo que va a empeorar la situaci&oacute;n.</em></p>
+  </div>
+</div></div>
+
+<!-- ============ M2 ============ -->
+
+<div class="slide" data-module="2"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m2">M2</div><div class="slide-number">SLIDE 10</div></div><div class="module-label">M&oacute;dulo 2 &mdash; Sostenibilidad y L&iacute;mites de Riesgo</div><div class="slide-subtitle">Sostenibilidad y l&iacute;mites de riesgo</div></div>
+  <div class="slide-content">
+    <p><em>En el M&oacute;dulo 1 aprendimos a diagnosticar. Ahora el M&oacute;dulo 2 responde a la siguiente pregunta: <strong>&iquest;cu&aacute;nto puede soportar realmente la empresa?</strong>.</em></p>
+    <p><em>Una empresa puede pasar los 3 filtros y a&uacute;n as&iacute; quebrar en 2 a&ntilde;os si no dimensionamos bien la deuda. Saldremos de aqu&iacute; con una <strong>calculadora de capacidad m&aacute;xima</strong> y un <strong>test de sobreendeudamiento</strong>.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="2"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m2">M2</div><div class="slide-number">SLIDE 11</div></div><div class="module-label">M&oacute;dulo 2</div><div class="slide-subtitle">El error m&aacute;s com&uacute;n de las pymes</div></div>
+  <div class="slide-content">
+    <p><em>Las pymes piden <strong>cuanto pueden</strong>, no cuanto necesitan. El banco concede seg&uacute;n su scoring interno, que no tiene por qu&eacute; coincidir con lo que la empresa realmente puede pagar cada mes.</em></p>
+    <p><em>El banco no paga las cuotas. <strong>Las paga la empresa</strong>. Nuestro trabajo es calcular el l&iacute;mite verdadero <em>antes</em> de que el cliente entre a negociar, para que vaya preparado y no acepte una cuota que lo asfixie.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="2"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m2">M2</div><div class="slide-number">SLIDE 12</div></div><div class="module-label">M&oacute;dulo 2</div><div class="slide-subtitle">Capacidad de Pago</div></div>
+  <div class="slide-content">
+    <p><em>El <strong>Cash Flow Operativo</strong> es el dinero real que queda en caja al final del a&ntilde;o. No es el beneficio contable &mdash; el beneficio puede estar inflado por apuntes que no mueven caja, como las amortizaciones. Lo que nos interesa es la caja.</em></p>
+    <p><em>La f&oacute;rmula es sencilla: <strong>beneficio operativo + amortizaciones &minus; impuestos &minus; variaci&oacute;n de NOF</strong>. Con eso calculamos la <strong>cobertura</strong>: cu&aacute;ntas veces puede la empresa pagar la cuota con lo que genera. Si sale m&aacute;s de 1,25, la empresa paga con margen. Usamos 3 a&ntilde;os de historia para ver tendencia, no un a&ntilde;o aislado.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="2"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m2">M2</div><div class="slide-number">SLIDE 13</div></div><div class="module-label">M&oacute;dulo 2</div><div class="slide-subtitle">No basta con poder pagar hoy</div></div>
+  <div class="slide-content">
+    <p><em>Una empresa puede pagar hoy y no poder pagar en 18 meses. Lo que importa no es si tiene caja en diciembre, sino <strong>la sostenibilidad del flujo</strong> en los pr&oacute;ximos a&ntilde;os.</em></p>
+    <p><em>&iquest;El negocio es estable o vol&aacute;til? &iquest;Depende de uno o dos clientes grandes? &iquest;Es estacional? Un restaurante muy rentable pero estacional no aguanta la misma deuda que una f&aacute;brica con contratos anuales. <strong>Hay que mirar m&aacute;s all&aacute; del n&uacute;mero</strong>.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="2"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m2">M2</div><div class="slide-number">SLIDE 14</div></div><div class="module-label">M&oacute;dulo 2</div><div class="slide-subtitle">La estabilidad del flujo</div></div>
+  <div class="slide-content">
+    <p><em>La herramienta hace una <strong>prueba de resistencia</strong> autom&aacute;tica: simula qu&eacute; pasar&iacute;a con la capacidad de pago si las ventas cayeran un 10%, 20% o 30%.</em></p>
+    <p><em>Si con solo un 10% menos ya no puede pagar, la operaci&oacute;n es arriesgada. Si aguanta una ca&iacute;da del 30% con cobertura por encima de 1, la operaci&oacute;n es s&oacute;lida. Este stress test es lo que distingue <strong>un an&aacute;lisis profesional de un diagn&oacute;stico de despacho</strong>.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="2"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m2">M2</div><div class="slide-number">SLIDE 15</div></div><div class="module-label">M&oacute;dulo 2</div><div class="slide-subtitle">Coherencia temporal &middot; plazo de la deuda = vida del activo</div></div>
+  <div class="slide-content">
+    <p><em>El tercer pilar es la <strong>coherencia temporal</strong>, y es el error m&aacute;s com&uacute;n que vemos. Financiar activos de largo plazo con deuda de corto plazo.</em></p>
+    <p><em>La regla es sagrada: <strong>la vida del pr&eacute;stamo debe parecerse a la vida del activo</strong>. Si compramos una m&aacute;quina que dura 10 a&ntilde;os, buscamos financiaci&oacute;n a 7-10. Si necesitamos stock que se vende en 3 meses, usamos una p&oacute;liza. El error cl&aacute;sico: reformar un local (dura 15 a&ntilde;os) con un pr&eacute;stamo a 3 a&ntilde;os &laquo;para pagar menos intereses&raquo;. A los 18 meses, la cuota ahoga la caja.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="2"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m2">M2</div><div class="slide-number">SLIDE 16</div></div><div class="module-label">M&oacute;dulo 2</div><div class="slide-subtitle">Herramientas pr&aacute;cticas</div></div>
+  <div class="slide-content">
+    <p><em>La <strong>Calculadora de Capacidad M&aacute;xima</strong> os dice cu&aacute;nto puede pagar la empresa como l&iacute;mite. El <strong>Test de sobreendeudamiento</strong> enciende 5 alarmas si algo est&aacute; mal.</em></p>
+    <p><em>Con estas dos hojas hac&eacute;is un <strong>diagn&oacute;stico bancario en 10 minutos</strong>. Y lo que entreg&aacute;is al cliente ya no es un archivo contable: es un informe profesional que justifica vuestros honorarios.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="2"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m2">M2</div><div class="slide-number">SLIDE 17</div></div><div class="module-label">M&oacute;dulo 2</div><div class="slide-subtitle">El test de sobreendeudamiento</div></div>
+  <div class="slide-content">
+    <p><em>Son 5 se&ntilde;ales que los bancos usan para detectar empresas en riesgo. Basta con una activa para requerir an&aacute;lisis adicional.</em></p>
+    <p><em>Cobertura de la cuota inferior a 1,25. Deuda total respecto al beneficio bruto superior a 3 a&ntilde;os. Gastos financieros que se comen m&aacute;s del 30% del resultado. Patrimonio neto por debajo del 20% del activo. Fondo de maniobra negativo. <strong>Si se activan 2 o m&aacute;s, reestructurar primero</strong>. Si son 3 o m&aacute;s, ya no es tiempo de recomendar financiaci&oacute;n: es momento de plan de rescate.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="2"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m2">M2</div><div class="slide-number">SLIDE 18</div></div><div class="module-label">M&oacute;dulo 2</div><div class="slide-subtitle">El informe de capacidad</div></div>
+  <div class="slide-content">
+    <p><em>El Informe de Capacidad es un documento de <strong>una sola p&aacute;gina</strong> que se genera autom&aacute;ticamente. Contiene la capacidad m&aacute;xima real, 3 alternativas viables, el stress test y una recomendaci&oacute;n profesional.</em></p>
+    <p><em>Lo entreg&aacute;is al cliente <em>antes</em> de que vaya al banco. El cliente lleva preparada la conversaci&oacute;n y percibe el <strong>valor real de vuestro trabajo</strong>. No es un documento m&aacute;s: es el que justifica pagar 500&nbsp;&euro; en vez de 200&nbsp;&euro; al mes.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="2"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m2">M2</div><div class="slide-number">SLIDE 19</div></div><div class="module-label">M&oacute;dulo 2</div><div class="slide-subtitle">3 reglas de oro del M&oacute;dulo 2</div></div>
+  <div class="slide-content">
+    <p><em>Primera: no pregunt&eacute;is cu&aacute;nto quiere el cliente. <strong>Preguntad cu&aacute;nto puede</strong>. Esa diferencia cambia toda la conversaci&oacute;n.</em></p>
+    <p><em>Segunda: <strong>el plazo se ajusta al activo</strong>, no al capricho. Ni del cliente ni del banco.</em></p>
+    <p><em>Tercera: haced siempre <strong>stress test</strong> antes de recomendar. Un an&aacute;lisis sin simulaci&oacute;n de escenarios no es un an&aacute;lisis, es una foto fija.</em></p>
+  </div>
+</div></div>
+
+<!-- ============ M3 ============ -->
+
+<div class="slide" data-module="3"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m3">M3</div><div class="slide-number">SLIDE 20</div></div><div class="module-label">M&oacute;dulo 3 &mdash; Gesti&oacute;n del Circulante</div><div class="slide-subtitle">Por qu&eacute; una empresa rentable puede quedarse sin caja</div></div>
+  <div class="slide-content">
+    <p><em>M1 aprendi&oacute; a diagnosticar. M2 calcul&oacute; cu&aacute;nto puede pagar. <strong>M3 se centra en el d&iacute;a a d&iacute;a</strong>: d&oacute;nde se le est&aacute; escapando el dinero sin que el cliente se d&eacute; cuenta.</em></p>
+    <p><em>Veremos la <strong>trampa del crecimiento</strong>: una empresa que gana m&aacute;s dinero cada a&ntilde;o y a la vez tiene menos caja. Parece imposible, pero pasa constantemente. Saldremos con un <strong>Cuadro de Mando del Circulante</strong> listo para entregar cada trimestre.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="3"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m3">M3</div><div class="slide-number">SLIDE 21</div></div><div class="module-label">M&oacute;dulo 3</div><div class="slide-subtitle">Conexi&oacute;n con M1 y M2</div></div>
+  <div class="slide-content">
+    <p><em>En M1 y M2 el cliente ven&iacute;a pidi&eacute;ndoos algo concreto: una p&oacute;liza, un pr&eacute;stamo. Vosotros reaccion&aacute;bais.</em></p>
+    <p><em>En M3 el papel se invierte: sois <strong>vosotros quienes detect&aacute;is el problema</strong> antes de que el cliente lo vea. Es lo que convierte el servicio en <strong>asesoramiento proactivo</strong>, y lo que justifica una cuota recurrente mensual.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="3"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m3">M3</div><div class="slide-number">SLIDE 22</div></div><div class="module-label">M&oacute;dulo 3</div><div class="slide-subtitle">Cash is not Profit</div></div>
+  <div class="slide-content">
+    <p><em>El beneficio es una opini&oacute;n. La caja es un hecho. <strong>El beneficio depende de c&oacute;mo contabilic&eacute;is</strong> &mdash; amortizaciones, provisiones, criterios. La caja, no: est&aacute; o no est&aacute; en el banco.</em></p>
+    <p><em>Una empresa puede ganar 100.000&nbsp;&euro; en papel y estar en n&uacute;meros rojos en la cuenta corriente. <strong>No es un caso raro &mdash; es lo m&aacute;s com&uacute;n</strong> en pymes que crecen. Explicar esto al cliente es la primera conversaci&oacute;n del servicio CFO Externo.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="3"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m3">M3</div><div class="slide-number">SLIDE 23</div></div><div class="module-label">M&oacute;dulo 3</div><div class="slide-subtitle">El circulante traducido a cuentas del PGC</div></div>
+  <div class="slide-content">
+    <p><em>Tres cuentas del plan contable explican todo el circulante. Clientes <strong>(cuenta 430)</strong>: facturas emitidas pendientes de cobrar &mdash; dinero bloqueado. Existencias <strong>(300)</strong>: stock en almac&eacute;n esperando venderse &mdash; dinero parado. Proveedores <strong>(400)</strong>: lo que debemos a proveedores &mdash; financiaci&oacute;n gratis mientras no paguemos.</em></p>
+    <p><em>La f&oacute;rmula de las <strong>NOF</strong>: 430 + 300 &minus; 400. Es el dinero que la empresa necesita tener aparcado permanentemente para que el negocio funcione. No es opcional: es estructural.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="3"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m3">M3</div><div class="slide-number">SLIDE 24</div></div><div class="module-label">M&oacute;dulo 3</div><div class="slide-subtitle">El viaje de un euro</div></div>
+  <div class="slide-content">
+    <p><em>Un euro empieza como <strong>dinero en el banco</strong>. Sale para pagar a un proveedor. Durante unas semanas est&aacute; parado como <strong>stock</strong>. Luego se vende, pero el cliente no paga al momento: queda como <strong>cliente pendiente de cobro</strong> durante meses. Finalmente, vuelve al banco como cobro.</em></p>
+    <p><em>Ese recorrido completo es el <strong>Ciclo de Caja</strong>. Cuanto m&aacute;s corto, m&aacute;s caja libre tiene la empresa. Cuanto m&aacute;s largo, m&aacute;s dinero necesita aparcado permanentemente para funcionar.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="3"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m3">M3</div><div class="slide-number">SLIDE 25</div></div><div class="module-label">M&oacute;dulo 3</div><div class="slide-subtitle">Los 3 ratios del circulante</div></div>
+  <div class="slide-content">
+    <p><em>La herramienta convierte las cifras en d&iacute;as. <strong>D&iacute;as de cobro</strong>: cu&aacute;ntos d&iacute;as tarda la empresa en cobrar a sus clientes &mdash; meta menos de 60. <strong>D&iacute;as de stock</strong>: cu&aacute;ntos d&iacute;as tarda en vender lo que compra &mdash; meta menos de 45. <strong>D&iacute;as de pago</strong>: cu&aacute;ntos d&iacute;as tarda en pagar a sus proveedores &mdash; meta m&aacute;s de 30.</em></p>
+    <p><em>El <strong>Ciclo de Caja = cobro + stock &minus; pago</strong>. Si sube 10 d&iacute;as y la empresa vende 1.000&nbsp;&euro;/d&iacute;a, necesita 10.000&nbsp;&euro; m&aacute;s de financiaci&oacute;n permanente. Por eso un peque&ntilde;o cambio aqu&iacute; cambia mucho la caja.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="3"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m3">M3</div><div class="slide-number">SLIDE 26</div></div><div class="module-label">M&oacute;dulo 3</div><div class="slide-subtitle">6 decisiones que destruyen la liquidez</div></div>
+  <div class="slide-content">
+    <p><em>Son decisiones bienintencionadas que <strong>acaban con la caja</strong>. Aceptar clientes que tardan mucho en pagar sin compensaci&oacute;n. Crecer r&aacute;pido sin prever la subida de NOF. Comprar stock por descuentos puntuales.</em></p>
+    <p><em>Pagar a proveedores antes del plazo &laquo;por queda bien&raquo;. Aceptar pedidos m&iacute;nimos mayores sin renegociar plazos. No provisionar morosos y arrastrar cuentas de clientes irreales. <strong>Cualquiera de las seis erosiona la caja sin que el cliente lo vea</strong>, porque el beneficio sigue entrando.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="3"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m3">M3</div><div class="slide-number">SLIDE 27</div></div><div class="module-label">M&oacute;dulo 3</div><div class="slide-subtitle">El Cuadro de Mando del Circulante</div></div>
+  <div class="slide-content">
+    <p><em>Es una p&aacute;gina. 6 indicadores. Sem&aacute;foro autom&aacute;tico. Se actualiza cada trimestre desde la propia contabilidad que vosotros ya hac&eacute;is.</em></p>
+    <p><em>Incluye NOF, d&iacute;as de cobro, d&iacute;as de stock, d&iacute;as de pago, Ciclo de Caja y uso de la p&oacute;liza. Lo entreg&aacute;is al cliente cada trimestre. <strong>Os convert&iacute;s en imprescindibles</strong>: ya no sois el gestor de impuestos, sois el que le dice c&oacute;mo est&aacute; su circulante.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="3"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m3">M3</div><div class="slide-number">SLIDE 28</div></div><div class="module-label">M&oacute;dulo 3</div><div class="slide-subtitle">4 se&ntilde;ales de alarma en el balance</div></div>
+  <div class="slide-content">
+    <p><em>La herramienta comprueba autom&aacute;ticamente cuatro se&ntilde;ales comparando este trimestre con el anterior. Clientes crecen m&aacute;s que las ventas &mdash; cobra peor. Stock crece m&aacute;s que las ventas &mdash; acumula producto que no rota.</em></p>
+    <p><em>Proveedores bajan o no crecen &mdash; aprietan para cobrar antes. P&oacute;liza permanentemente al tope &mdash; dependencia estructural del banco. <strong>Con 3 o m&aacute;s alarmas activas, la situaci&oacute;n es cr&iacute;tica</strong>. Hay que actuar antes de aceptar m&aacute;s deuda.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="3"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m3">M3</div><div class="slide-number">SLIDE 29</div></div><div class="module-label">M&oacute;dulo 3</div><div class="slide-subtitle">Plan de acci&oacute;n en 5 pasos</div></div>
+  <div class="slide-content">
+    <p><em>Si hay alarmas, el plan es siempre el mismo. Primero <strong>apretar cobros</strong> &mdash; descuento pronto pago o factoring. Segundo, <strong>revisar stock</strong> y eliminar lo que no rota. Tercero, <strong>renegociar con proveedores</strong> alargando plazos sin empeorar precio.</em></p>
+    <p><em>Cuarto, <strong>dimensionar bien la p&oacute;liza</strong> o abrir una segunda l&iacute;nea en otro banco. Y quinto, <strong>revisar trimestralmente</strong>: el seguimiento es lo que genera el h&aacute;bito. Una revisi&oacute;n anual llega tarde.</em></p>
+  </div>
+</div></div>
+
+<!-- ============ M4 ============ -->
+
+<div class="slide" data-module="4"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m4">M4</div><div class="slide-number">SLIDE 30</div></div><div class="module-label">M&oacute;dulo 4 &mdash; An&aacute;lisis del Balance</div><div class="slide-subtitle">An&aacute;lisis del balance para liquidez y solvencia</div></div>
+  <div class="slide-content">
+    <p><em>M3 ve&iacute;a el d&iacute;a a d&iacute;a. M4 mira <strong>la foto completa del balance</strong>: est&aacute; la empresa bien financiada? &iquest;tiene suficiente colch&oacute;n? &iquest;qu&eacute; ver&iacute;a un banco si analizara esto?</em></p>
+    <p><em>Vamos a leer el balance como lo lee un <strong>analista de riesgos bancario</strong>. Y saldremos con el <strong>Informe Bancario profesional</strong>, listo para adjuntar a cualquier solicitud de financiaci&oacute;n.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="4"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m4">M4</div><div class="slide-number">SLIDE 31</div></div><div class="module-label">M&oacute;dulo 4</div><div class="slide-subtitle">El Balance Contable &middot; lo que ya sab&eacute;is</div></div>
+  <div class="slide-content">
+    <p><em>El balance contable est&aacute; ordenado por naturaleza: activo por grupos 2, 3, 4, 5; pasivo por grupos 1, 4, 5. Es &uacute;til para presentar cuentas y para Hacienda.</em></p>
+    <p><em>Pero para un banco, <strong>este ordenamiento es poco &uacute;til</strong>. Al analista no le interesa saber cu&aacute;nto est&aacute; en la cuenta 21 o en la 22; le interesa saber si el activo fijo est&aacute; bien financiado con recursos a largo plazo. Por eso hay que reorganizarlo.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="4"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m4">M4</div><div class="slide-number">SLIDE 32</div></div><div class="module-label">M&oacute;dulo 4</div><div class="slide-subtitle">El Balance de Gesti&oacute;n</div></div>
+  <div class="slide-content">
+    <p><em>Reorganizamos el balance en <strong>dos columnas claras</strong>. Izquierda, d&oacute;nde est&aacute; el dinero invertido: activo fijo + NOF + tesorer&iacute;a. Derecha, qui&eacute;n lo ha puesto: fondos propios + deuda a largo plazo + deuda a corto plazo.</em></p>
+    <p><em>Con esta foto, el banco <strong>ve en 30 segundos</strong> si la empresa est&aacute; bien financiada. Si el activo fijo encaja con la financiaci&oacute;n a largo, todo bien. Si el activo fijo tira de deuda a corto, peligro.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="4"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m4">M4</div><div class="slide-number">SLIDE 33</div></div><div class="module-label">M&oacute;dulo 4</div><div class="slide-subtitle">El Fondo de Maniobra en profundidad</div></div>
+  <div class="slide-content">
+    <p><em>El <strong>Fondo de Maniobra</strong> es lo que queda de recursos a largo plazo despu&eacute;s de pagar los activos que duran mucho. F&oacute;rmula: <strong>fondos propios + deuda largo plazo &minus; activo fijo</strong>.</em></p>
+    <p><em>Si el Fondo de Maniobra es mayor que las NOF, la empresa est&aacute; equilibrada. Si es menor, hay tensi&oacute;n: hay que cubrir la diferencia con p&oacute;liza. <strong>Si es negativo, peligro estructural</strong> &mdash; la empresa financia activos que duran mucho con deuda que vence pronto. Eso acaba mal salvo que se reestructure.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="4"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m4">M4</div><div class="slide-number">SLIDE 34</div></div><div class="module-label">M&oacute;dulo 4</div><div class="slide-subtitle">El balance ajustado &middot; detectar maquillaje</div></div>
+  <div class="slide-content">
+    <p><em>El maquillaje contable no siempre es fraude &mdash; muchas veces es <strong>simplemente no provisionar</strong> lo que toca. Cuatro se&ntilde;ales: clientes antiguos sin provisi&oacute;n, stock obsoleto, socios deudores, gastos activados indebidamente.</em></p>
+    <p><em>La herramienta calcula el <strong>balance ajustado</strong>: c&oacute;mo ser&iacute;a si todo estuviera bien provisionado. Lo mencionamos <strong>nosotros antes</strong> de que el banco lo detecte. La transparencia proactiva genera confianza; esperar a que pregunten genera dudas.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="4"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m4">M4</div><div class="slide-number">SLIDE 35</div></div><div class="module-label">M&oacute;dulo 4</div><div class="slide-subtitle">Deuda buena vs deuda mala</div></div>
+  <div class="slide-content">
+    <p><em>No toda la deuda es mala. <strong>Deuda buena</strong>: la que financia inversi&oacute;n que genera retorno &mdash; una m&aacute;quina que aumenta la producci&oacute;n, una nave que se alquila. <strong>Deuda neutra</strong>: la que financia circulante estructural &mdash; una p&oacute;liza dimensionada para cubrir las NOF. Es necesaria aunque no genere retorno directo.</em></p>
+    <p><em>La <strong>deuda mala</strong> es la que financia p&eacute;rdidas o refinancia deuda vieja sin cambiar el problema de fondo. El banco la detecta r&aacute;pido. Vosotros tambi&eacute;n deb&eacute;is detectarla y recomendar alternativas.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="4"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m4">M4</div><div class="slide-number">SLIDE 36</div></div><div class="module-label">M&oacute;dulo 4</div><div class="slide-subtitle">Los 6 ratios de endeudamiento</div></div>
+  <div class="slide-content">
+    <p><em>Son los mismos que usa cualquier analista bancario. <strong>Endeudamiento total</strong> por debajo del 60%. <strong>Autonom&iacute;a financiera</strong> por encima del 40%. <strong>Deuda neta / EBITDA</strong> por debajo de 2 a&ntilde;os. <strong>Cobertura de deuda</strong> por encima de 1,25. <strong>Gastos financieros / EBIT</strong> por debajo del 30%. <strong>Coste medio de la deuda</strong> por debajo del 6%.</em></p>
+    <p><em>La herramienta los calcula sola y pone un sem&aacute;foro. Si <strong>el coste medio es mayor del 6%</strong>, hay que plantearle al cliente <strong>renegociar deuda antigua</strong> &mdash; normalmente tiene poder de negociaci&oacute;n si los dem&aacute;s ratios est&aacute;n bien.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="4"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m4">M4</div><div class="slide-number">SLIDE 37</div></div><div class="module-label">M&oacute;dulo 4</div><div class="slide-subtitle">Los 5 puntos del analista de riesgos</div></div>
+  <div class="slide-content">
+    <p><em>Cuando el expediente llega al analista, este mira <strong>5 cosas en este orden</strong>. La tendencia de las ventas &mdash; &iquest;crece o decrece? La rentabilidad &mdash; &iquest;el margen operativo es positivo y estable?</em></p>
+    <p><em>La solvencia &mdash; &iquest;la empresa es financieramente aut&oacute;noma? La liquidez &mdash; &iquest;puede pagar a corto plazo sin tirar de deuda? Y la capacidad de pago &mdash; &iquest;la cobertura de la cuota es suficiente? <strong>Si en vuestro informe ya contest&aacute;is a estas 5 preguntas con datos, el analista trabaja m&aacute;s r&aacute;pido y mejor</strong>.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="4"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m4">M4</div><div class="slide-number">SLIDE 38</div></div><div class="module-label">M&oacute;dulo 4</div><div class="slide-subtitle">El Informe Bancario profesional</div></div>
+  <div class="slide-content">
+    <p><em>Es un documento de 2-3 p&aacute;ginas con <strong>4 apartados</strong>. Primero, contexto de la empresa. Segundo, situaci&oacute;n financiera &mdash; los 6 ratios con sem&aacute;foro. Tercero, motivo de la solicitud &mdash; destino, importe, plazo. Cuarto, capacidad de devoluci&oacute;n con y sin la nueva operaci&oacute;n.</em></p>
+    <p><em>Se adjunta con la solicitud formal. <strong>Le ahorramos trabajo al analista</strong>: no tiene que calcular ratios, ni buscar datos, ni interpretar el balance. Todo est&aacute; pre-digerido. La respuesta es m&aacute;s r&aacute;pida y la probabilidad de aprobaci&oacute;n es mayor.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="4"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m4">M4</div><div class="slide-number">SLIDE 39</div></div><div class="module-label">M&oacute;dulo 4</div><div class="slide-subtitle">3 reglas de oro de la presentaci&oacute;n bancaria</div></div>
+  <div class="slide-content">
+    <p><em>Primera: <strong>transparencia proactiva</strong>. Mencionar los puntos d&eacute;biles antes de que el banco los detecte. Genera confianza inmediata.</em></p>
+    <p><em>Segunda: <strong>traducir ratios a euros</strong>. En vez de &laquo;DSO de 70 d&iacute;as&raquo;, decir &laquo;tarda en cobrar 2 meses y medio, lo que inmoviliza 35.000&nbsp;&euro;&raquo;. El empresario y el analista entienden euros, no ratios abstractos.</em></p>
+    <p><em>Tercera: <strong>cerrar con una recomendaci&oacute;n clara y un plan B</strong>. &laquo;Recomendamos el pr&eacute;stamo a 10 a&ntilde;os; si no es posible, alternativa con aval SGR&raquo;. Nunca dejar la pelota en el tejado del banco.</em></p>
+  </div>
+</div></div>
+
+<!-- ============ M5 ============ -->
+
+<div class="slide" data-module="5"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m5">M5</div><div class="slide-number">SLIDE 40</div></div><div class="module-label">M&oacute;dulo 5 &mdash; Transformaci&oacute;n del Despacho</div><div class="slide-subtitle">Apertura del m&oacute;dulo 5</div></div>
+  <div class="slide-content">
+    <p><em>En los m&oacute;dulos 1, 2, 3 y 4 os he dado <strong>las herramientas t&eacute;cnicas</strong>: c&oacute;mo diagnosticar, c&oacute;mo calcular capacidad, c&oacute;mo gestionar el circulante, c&oacute;mo analizar el balance.</em></p>
+    <p><em>Este m&oacute;dulo 5 responde a la pregunta final: <strong>&iquest;c&oacute;mo convierto todo esto en un nuevo modelo de negocio?</strong>. Saldremos con un <strong>pack comercial completo</strong>: pirámide de valor, pricing, entregables, argumento de venta y estructura de la reuni&oacute;n mensual.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="5"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m5">M5</div><div class="slide-number">SLIDE 41</div></div><div class="module-label">M&oacute;dulo 5</div><div class="slide-subtitle">El mercado est&aacute; cambiando</div></div>
+  <div class="slide-content">
+    <p><em>La amenaza: el software barato y la inteligencia artificial ya hacen impuestos por 20&nbsp;&euro; al mes. El asesor que solo vende &laquo;presentar impuestos&raquo; va a ver cada a&ntilde;o c&oacute;mo le bajan las cuotas y sube la presi&oacute;n.</em></p>
+    <p><em>La oportunidad: las pymes <strong>nunca necesitaron m&aacute;s asesoramiento</strong>. Complejidad fiscal, tipos de inter&eacute;s altos, mercado cambiante, estrategia de precios. <strong>Pagan mucho a quien les orienta</strong>. Y vosotros ya ten&eacute;is los datos y la confianza. Solo os falta el empaquetado comercial.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="5"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m5">M5</div><div class="slide-number">SLIDE 42</div></div><div class="module-label">M&oacute;dulo 5</div><div class="slide-subtitle">La Pir&aacute;mide de Valor del Asesor</div></div>
+  <div class="slide-content">
+    <p><em>Hay cuatro niveles, de menos a m&aacute;s valor. <strong>Nivel 1, Cumplimiento</strong>: impuestos, libros. Precio bajo, mucha presi&oacute;n, poca fidelidad. <strong>Nivel 2, An&aacute;lisis</strong>: diagn&oacute;sticos trimestrales basados en los datos que ya hac&eacute;is. Precio medio.</em></p>
+    <p><em><strong>Nivel 3, Consultor&iacute;a</strong>: decisiones estrat&eacute;gicas, negociaci&oacute;n bancaria, planes de viabilidad. Precio alto por proyecto. <strong>Nivel 4, CFO Externo</strong>: direcci&oacute;n financiera mensual continua. Precio alto y <strong>recurrente</strong>. El objetivo del curso es darte las herramientas para subir del nivel 1 al 4.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="5"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m5">M5</div><div class="slide-number">SLIDE 43</div></div><div class="module-label">M&oacute;dulo 5</div><div class="slide-subtitle">C&oacute;mo empaquetar el servicio CFO Externo</div></div>
+  <div class="slide-content">
+    <p><em>Tres packs seg&uacute;n el tama&ntilde;o del cliente. <strong>B&aacute;sico</strong>: clientes entre 300 y 600 mil de facturaci&oacute;n, cuota entre 300 y 400&nbsp;&euro;/mes. <strong>Est&aacute;ndar</strong>: entre 600 mil y 1,5 millones, cuota entre 400 y 600&nbsp;&euro;/mes. <strong>Premium</strong>: m&aacute;s de 1,5 millones, cuota entre 600 y 800&nbsp;&euro;/mes.</em></p>
+    <p><em>El contenido en los tres: Dashboard mensual, Previsi&oacute;n de tesorer&iacute;a a 13 semanas, Reuni&oacute;n estructurada con el cliente, e Informe Bancario cuando haga falta una operaci&oacute;n.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="5"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m5">M5</div><div class="slide-number">SLIDE 44</div></div><div class="module-label">M&oacute;dulo 5</div><div class="slide-subtitle">C&oacute;mo ponerle precio</div></div>
+  <div class="slide-content">
+    <p><em>Nunca por horas. Siempre por valor. La regla simple: entre el <strong>0,5% y el 1% de la facturaci&oacute;n anual</strong> del cliente.</em></p>
+    <p><em>Una empresa que factura 1 mill&oacute;n paga 500&nbsp;&euro;/mes, que son 6.000&nbsp;&euro;/a&ntilde;o: solo el 0,6% de sus ventas. Y la justificaci&oacute;n cae sola: con que el servicio le ayude a cobrar solo <strong>5 d&iacute;as antes de lo que cobra ahora</strong>, la empresa libera 13.700&nbsp;&euro; en caja. <strong>El retorno es inmediato y cuantificable</strong>.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="5"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m5">M5</div><div class="slide-number">SLIDE 45</div></div><div class="module-label">M&oacute;dulo 5</div><div class="slide-subtitle">Los 3 entregables imprescindibles</div></div>
+  <div class="slide-content">
+    <p><em>Primero, el <strong>Dashboard Mensual</strong>: una p&aacute;gina con 7 KPIs, sem&aacute;foro autom&aacute;tico, comparado con el mes anterior y con el a&ntilde;o anterior. 15 minutos de preparaci&oacute;n si la contabilidad est&aacute; al d&iacute;a.</em></p>
+    <p><em>Segundo, la <strong>Previsi&oacute;n de Tesorer&iacute;a a 13 semanas</strong>. Es lo que <em>m&aacute;s valora el empresario</em>: convierte el miedo a quedarse sin caja en un plan. Tercero, la <strong>Reuni&oacute;n Mensual</strong> estructurada: 45-60 minutos con plan de acci&oacute;n concreto. Si no hay reuni&oacute;n, no hay servicio.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="5"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m5">M5</div><div class="slide-number">SLIDE 46</div></div><div class="module-label">M&oacute;dulo 5</div><div class="slide-subtitle">Estructura de la reuni&oacute;n mensual</div></div>
+  <div class="slide-content">
+    <p><em>Cuatro bloques. <strong>5 minutos</strong> para el resumen ejecutivo con el Dashboard. <strong>15 minutos</strong> para los puntos cr&iacute;ticos &mdash; siempre en euros, nunca en ratios abstractos. <strong>15 minutos</strong> para el plan de acci&oacute;n &mdash; una o dos acciones con responsable y fecha. <strong>10 minutos</strong> para la previsi&oacute;n y el cierre con deberes del mes siguiente.</em></p>
+    <p><em>Regla absoluta: <strong>en la reuni&oacute;n no se dice &laquo;NOF&raquo; ni &laquo;DSCR&raquo; ni &laquo;cuenta 430&raquo;</strong>. Se habla de clientes, caja, cobrar y pagar. El empresario no habla el idioma contable. Nosotros s&iacute; hablamos su idioma. Esa es nuestra ventaja.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="5"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m5">M5</div><div class="slide-number">SLIDE 47</div></div><div class="module-label">M&oacute;dulo 5</div><div class="slide-subtitle">Las 3 objeciones y c&oacute;mo desmontarlas</div></div>
+  <div class="slide-content">
+    <p><em>&laquo;No tengo tiempo&raquo;. Respuesta: son 45 minutos <strong>una vez al mes</strong>. Menos tiempo del que pasa ahora en una sola visita al gestor.</em></p>
+    <p><em>&laquo;Es caro&raquo;. Respuesta: si el servicio te ayuda a cobrar 5 d&iacute;as antes, <strong>recuperas 10 veces la cuota</strong> del a&ntilde;o. El ROI es inmediato.</em></p>
+    <p><em>&laquo;Ya me lo mira el banco&raquo;. Respuesta: el banco trabaja para s&iacute; mismo, no para ti. <strong>Nosotros trabajamos para ti</strong>. Son trabajos distintos.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="5"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m5">M5</div><div class="slide-number">SLIDE 48</div></div><div class="module-label">M&oacute;dulo 5</div><div class="slide-subtitle">C&oacute;mo vender el servicio al cliente actual</div></div>
+  <div class="slide-content">
+    <p><em>La venta no se hace vendiendo. Se hace <strong>compartiendo un diagn&oacute;stico</strong>. La llamada inicial no es &laquo;quiero ofrecerte un nuevo servicio&raquo;, es:</em></p>
+    <p><em>&laquo;He estado revisando tu contabilidad del trimestre y he visto algo que me gustar&iacute;a comentarte. Tu per&iacute;odo de cobro ha subido 4 d&iacute;as este a&ntilde;o &mdash; ahora tardas 70 d&iacute;as en cobrar. Eso significa que tienes atrapados unos <strong>35.000 euros m&aacute;s</strong> que el a&ntilde;o pasado. Quiero contarte c&oacute;mo lo manejamos con otros clientes.&raquo;</em></p>
+    <p><em>Cuando el cliente ve que <strong>ya sabes m&aacute;s de su negocio de lo que &eacute;l pensaba</strong>, el precio deja de ser un problema.</em></p>
+  </div>
+</div></div>
+
+<div class="slide" data-module="5"><div class="slide-inner">
+  <div class="slide-header"><div class="slide-number-row"><div class="module-badge mb-m5">M5</div><div class="slide-number">SLIDE 49</div></div><div class="module-label">Cierre del curso</div><div class="slide-subtitle">Gracias</div></div>
+  <div class="slide-content">
+    <p style="text-align:center; font-size:22px; padding:30px 0;"><em>Muchas gracias por vuestra atenci&oacute;n durante todo el curso.</em></p>
+    <p><em>Cinco m&oacute;dulos, cinco herramientas, una forma nueva de trabajar con vuestros clientes. El salto de <strong>asesor contable a consultor financiero</strong> empieza ma&ntilde;ana con el primer cliente al que le llev&eacute;is un diagn&oacute;stico en vez de unos papeles.</em></p>
+    <p style="text-align:center; padding-top:20px;"><em>Y mucho &eacute;xito en la transformaci&oacute;n de vuestro despacho.</em></p>
+  </div>
+</div></div>
+
+  </div>
+</div>
+
+<div class="nav-arrow nav-prev" id="prevBtn" onclick="go(-1)">&larr;</div>
+<div class="nav-arrow nav-next" id="nextBtn" onclick="go(1)">&rarr;</div>
+
+<div class="minimap" id="minimap"></div>
+
+<script>
+const total = 49;
+let current = 0;
+let fontSize = 18;
+
+const track = document.getElementById('track');
+const counter = document.getElementById('counter');
+const progress = document.getElementById('progress');
+const minimap = document.getElementById('minimap');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const moduleLabel = document.getElementById('moduleLabel');
+const allSlides = document.querySelectorAll('.slide');
+
+allSlides.forEach(function(s, i) {
+  var mod = s.getAttribute('data-module');
+  var dot = document.createElement('div');
+  dot.className = 'minimap-dot mod-' + mod + (i === 0 ? ' active' : '');
+  dot.onclick = function() { goTo(i); };
+  minimap.appendChild(dot);
+});
+const dots = document.querySelectorAll('.minimap-dot');
+
+const moduleLabels = {
+  '1': 'Módulo 1 — Diagnóstico Avanzado',
+  '2': 'Módulo 2 — Capacidad de Endeudamiento',
+  '3': 'Módulo 3 — Gestión del Circulante',
+  '4': 'Módulo 4 — Análisis de Balance',
+  '5': 'Módulo 5 — Transformación del Despacho'
+};
+
+function update() {
+  track.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+  counter.textContent = (current + 1) + ' / ' + total;
+  progress.style.width = (((current + 1) / total) * 100) + '%';
+  dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+  prevBtn.classList.toggle('disabled', current === 0);
+  nextBtn.classList.toggle('disabled', current === total - 1);
+  var activeDot = dots[current];
+  if (activeDot) activeDot.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  allSlides[current].scrollTop = 0;
+  var mod = allSlides[current].getAttribute('data-module');
+  moduleLabel.textContent = moduleLabels[mod] || '';
+}
+
+function go(dir) {
+  var next = current + dir;
+  if (next >= 0 && next < total) { current = next; update(); }
+}
+
+function goTo(i) { current = i; update(); }
+
+function changeFontSize(delta) {
+  fontSize = Math.max(14, Math.min(26, fontSize + delta));
+  document.querySelectorAll('.slide-content p').forEach(function(p) { p.style.fontSize = fontSize + 'px'; });
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); go(1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(-1); }
+  else if (e.key === 'Home') { e.preventDefault(); current = 0; update(); }
+  else if (e.key === 'End') { e.preventDefault(); current = total - 1; update(); }
+  else if (e.key === '+' || e.key === '=') { changeFontSize(1); }
+  else if (e.key === '-') { changeFontSize(-1); }
+});
+
+var touchStartX = 0;
+document.addEventListener('touchstart', function(e) { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', function(e) {
+  var diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 50) go(diff > 0 ? 1 : -1);
+});
+
+update();
+</script>
+</body>
+</html>
