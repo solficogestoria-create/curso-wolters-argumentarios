@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Argumentario Herramientas — Módulo 2 · Calculadora de Capacidad Máxima</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0a0a0f;
+    color: #e8e8ed;
+    overflow: hidden;
+    height: 100vh;
+    user-select: none;
+  }
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 52px;
+    background: rgba(15,15,25,0.95); backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; z-index: 100;
+  }
+  .topbar-title { font-size: 13px; font-weight: 500; color: #888; letter-spacing: 0.5px; text-transform: uppercase; }
+  .topbar-module { font-size: 12px; font-weight: 500; color: #aaa; }
+  .topbar-counter {
+    font-size: 14px; font-weight: 600; color: #fff;
+    background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3);
+    padding: 4px 14px; border-radius: 20px;
+  }
+  .topbar-keys { font-size: 11px; color: #555; }
+  .topbar-keys kbd {
+    display: inline-block; background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 4px;
+    padding: 2px 6px; font-family: inherit; font-size: 11px; color: #888; margin: 0 2px;
+  }
+  .progress-bar { position: fixed; top: 52px; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.04); z-index: 100; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #10b981, #06b6d4); transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 0 2px 2px 0; }
+  .slides-viewport { position: fixed; top: 55px; left: 0; right: 0; bottom: 0; overflow: hidden; }
+  .slides-track { display: flex; height: 100%; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+  .slide {
+    min-width: 100vw; height: 100%;
+    display: flex; justify-content: center; align-items: flex-start;
+    padding: 36px 60px; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent;
+  }
+  .slide::-webkit-scrollbar { width: 6px; }
+  .slide::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+  .slide-inner { max-width: 880px; width: 100%; }
+  .slide-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .slide-number-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .module-badge {
+    font-size: 11px; font-weight: 700; color: #fff;
+    background: linear-gradient(135deg, #10b981, #06b6d4);
+    padding: 3px 10px; border-radius: 12px; letter-spacing: 0.5px;
+  }
+  .module-label { font-size: 11px; font-weight: 500; color: #8888aa; letter-spacing: 0.3px; margin-bottom: 6px; }
+  .slide-number { font-size: 12px; font-weight: 600; color: #10b981; text-transform: uppercase; letter-spacing: 1.5px; }
+  .slide-subtitle { font-size: 24px; font-weight: 600; color: #fff; line-height: 1.3; }
+  .slide-content p { font-size: 16px; line-height: 1.7; color: #c8c8d0; margin-bottom: 12px; }
+  .slide-content h3.section-title {
+    font-size: 18px; font-weight: 600; color: #d0fff0;
+    margin: 18px 0 10px 0; padding-left: 12px; border-left: 3px solid #10b981;
+  }
+  .slide-content strong { color: #fff; font-weight: 600; }
+  .slide-content em { color: #b0b0d0; }
+  .slide-content ul { margin: 10px 0; padding-left: 22px; }
+  .slide-content li { font-size: 15.5px; line-height: 1.65; color: #c8c8d0; margin-bottom: 7px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 14px 0 16px 0; }
+  .kpi { padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); }
+  .kpi-label { font-size: 11px; color: #8888aa; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; }
+  .kpi-value { font-size: 24px; font-weight: 700; color: #fff; }
+  .kpi-ref { font-size: 11px; color: #6d6d85; margin-top: 2px; }
+  .kpi.red { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.06); }
+  .kpi.red .kpi-value { color: #f87171; }
+  .kpi.amber { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.06); }
+  .kpi.amber .kpi-value { color: #fbbf24; }
+  .kpi.green { border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.06); }
+  .kpi.green .kpi-value { color: #34d399; }
+  table.data { width: 100%; border-collapse: collapse; margin: 12px 0 16px 0; font-size: 14.5px; }
+  table.data th, table.data td { padding: 9px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  table.data th { font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: #8888aa; font-weight: 600; }
+  table.data td { color: #c8c8d0; }
+  table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .state-red { color: #f87171; font-weight: 600; }
+  .state-amber { color: #fbbf24; font-weight: 600; }
+  .state-green { color: #34d399; font-weight: 600; }
+  .nav-arrow {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    color: #888; font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; z-index: 50;
+  }
+  .nav-arrow:hover { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); color: #fff; }
+  .nav-arrow.disabled { opacity: 0.2; pointer-events: none; }
+  .nav-prev { left: 16px; } .nav-next { right: 16px; }
+  .minimap {
+    position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 6px; padding: 6px 14px;
+    background: rgba(15,15,25,0.9); border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.06); z-index: 50;
+  }
+  .minimap-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(16,185,129,0.25); cursor: pointer; transition: all 0.3s; }
+  .minimap-dot:hover { background: rgba(16,185,129,0.6); transform: scale(1.3); }
+  .minimap-dot.active { background: #10b981; transform: scale(1.4); box-shadow: 0 0 8px rgba(16,185,129,0.5); }
+  .font-controls { display: flex; gap: 4px; align-items: center; }
+  .font-btn { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #888; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .font-btn:hover { background: rgba(16,185,129,0.15); color: #fff; }
+  .callout { padding: 14px 18px; border-radius: 10px; border-left: 3px solid #10b981; background: rgba(16,185,129,0.08); margin: 12px 0; color: #e8e8ed; font-size: 15.5px; line-height: 1.6; }
+  .callout.red { border-left-color: #ef4444; background: rgba(239,68,68,0.08); }
+  .callout.amber { border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+  .callout strong { color: #fff; }
+  .quote { font-size: 18px; line-height: 1.5; color: #fff; padding: 16px 20px; background: rgba(16,185,129,0.08); border-radius: 10px; border: 1px solid rgba(16,185,129,0.2); margin: 12px 0; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-title">Argumentario &mdash; M&oacute;dulo 2 &middot; Calculadora de Capacidad M&aacute;xima</span>
+  <span class="topbar-module">Caso Metalmaq Industrial S.L.</span>
+  <span class="topbar-counter" id="counter">1 / 5</span>
+  <div class="font-controls">
+    <button class="font-btn" onclick="changeFontSize(-1)">A-</button>
+    <button class="font-btn" onclick="changeFontSize(1)">A+</button>
+  </div>
+  <span class="topbar-keys"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> navegar</span>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+<div class="slides-viewport">
+  <div class="slides-track" id="track">
+
+    <!-- SLIDE 1 · El caso -->
+    <div class="slide" data-module="2">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M2</div><div class="slide-number">SLIDE 1</div></div>
+          <div class="module-label">El caso</div>
+          <div class="slide-subtitle">Un cliente quiere pedir 300.000&nbsp;&euro; al banco</div>
+        </div>
+        <div class="slide-content">
+          <p><strong>Metalmaq Industrial, S.L.</strong> es un fabricante de maquinaria industrial, 17 a&ntilde;os en el mercado, 42 empleados, factura 2,45 millones de euros. Entra al despacho y os dice:</p>
+          <div class="quote">&laquo;Voy al banco a pedir 300.000&nbsp;&euro; a 7 a&ntilde;os al 4% para comprar una m&aacute;quina nueva. La cuota ser&aacute; de 51.000&nbsp;&euro; al a&ntilde;o. &iquest;Me preparas la documentaci&oacute;n?&raquo;</div>
+          <p>El banco tiene su propio c&aacute;lculo &mdash; sector, garant&iacute;as, scoring &mdash; pero <strong>el banco no paga las cuotas, las paga la empresa</strong>. Con la <strong>Calculadora de Capacidad M&aacute;xima</strong> vamos a responder en 10 minutos a la pregunta que importa:</p>
+          <div class="quote" style="border-color: rgba(16,185,129,0.5); background: rgba(16,185,129,0.12);">&laquo;&iquest;Puede Metalmaq asumir esa cuota sin comprometer su supervivencia?&raquo;</div>
+          <p>Y si no puede, <strong>le daremos tres alternativas concretas</strong> antes de que vaya al banco.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 · Abrimos la herramienta · Cash Flow -->
+    <div class="slide" data-module="2">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M2</div><div class="slide-number">SLIDE 2</div></div>
+          <div class="module-label">Abrimos la herramienta</div>
+          <div class="slide-subtitle">&iquest;Cu&aacute;nto dinero <em>de verdad</em> genera Metalmaq al a&ntilde;o?</div>
+        </div>
+        <div class="slide-content">
+          <p>Abrimos el Excel. Metemos los datos de los <strong>3 &uacute;ltimos a&ntilde;os</strong> de la contabilidad de Metalmaq (lo que ya ten&eacute;is hecho). La herramienta nos calcula el <strong>Cash Flow Operativo</strong>: el dinero real que queda en caja cada a&ntilde;o, disponible para pagar deudas.</p>
+          <p><em>Ojo: no es el beneficio. El beneficio contable puede estar inflado por apuntes que no mueven caja (como las amortizaciones). Aqu&iacute; hablamos de <strong>caja real</strong>.</em></p>
+          <table class="data">
+            <thead><tr><th>Concepto</th><th class="num">2022</th><th class="num">2023</th><th class="num">2024</th><th class="num">Media</th></tr></thead>
+            <tbody>
+              <tr><td>Beneficio operativo</td><td class="num">88.000</td><td class="num">91.000</td><td class="num">95.000</td><td class="num">91.333</td></tr>
+              <tr><td>+ Amortizaciones <em>(gasto contable, no sale de caja)</em></td><td class="num">22.000</td><td class="num">23.000</td><td class="num">25.000</td><td class="num">23.333</td></tr>
+              <tr><td>&minus; Impuesto 25%</td><td class="num">-22.000</td><td class="num">-22.750</td><td class="num">-23.750</td><td class="num">-22.833</td></tr>
+              <tr><td>&minus; Dinero atrapado en clientes</td><td class="num">-5.000</td><td class="num">-8.000</td><td class="num">-10.000</td><td class="num">-7.667</td></tr>
+              <tr><td><strong>= Dinero real generado</strong></td><td class="num">83.000</td><td class="num">83.250</td><td class="num">86.250</td><td class="num state-green"><strong>84.167 &euro;</strong></td></tr>
+            </tbody>
+          </table>
+          <div class="callout" style="text-align:center; font-size:20px; font-weight:700; color:#fff;">
+            Metalmaq genera <span class="state-green">84.167&nbsp;&euro; reales</span> al a&ntilde;o para pagar deudas.
+          </div>
+          <p>Y la tendencia es buena: sube un 3-4% cada a&ntilde;o. Eso al banco le gusta. Usamos 3 a&ntilde;os precisamente para ver si la empresa es <strong>s&oacute;lida de forma sostenida</strong> o solo tuvo un buen a&ntilde;o puntual.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 · Ratio de Cobertura -->
+    <div class="slide" data-module="2">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M2</div><div class="slide-number">SLIDE 3</div></div>
+          <div class="module-label">La pregunta clave</div>
+          <div class="slide-subtitle">&iquest;Cu&aacute;ntas veces puede pagar Metalmaq la cuota?</div>
+        </div>
+        <div class="slide-content">
+          <p>La herramienta calcula un n&uacute;mero muy sencillo &mdash; el <strong>Ratio de Cobertura</strong> &mdash; que responde a esa pregunta:</p>
+          <div class="callout" style="text-align:center; font-size:18px; font-weight:600; color:#fff;">
+            Cobertura = dinero que genera &divide; cuota anual
+          </div>
+          <p>Cuanto m&aacute;s alto, mejor. Los l&iacute;mites son:</p>
+          <table class="data">
+            <tbody>
+              <tr><td><span class="state-green" style="font-size:18px;">&gt; 1,50</span></td><td>Sobra margen. Seguro.</td></tr>
+              <tr><td><span class="state-amber" style="font-size:18px;">1,25 &mdash; 1,50</span></td><td>Ajustado. Si hay un imprevisto, problema.</td></tr>
+              <tr><td><span class="state-red" style="font-size:18px;">&lt; 1,25</span></td><td>No recomendar. La empresa trabaja para el banco.</td></tr>
+              <tr><td><span class="state-red" style="font-size:18px;">&lt; 1,00</span></td><td>Quiebra. No llega a pagar.</td></tr>
+            </tbody>
+          </table>
+          <h3 class="section-title">Qu&eacute; sale en Metalmaq</h3>
+          <div class="kpi-grid">
+            <div class="kpi green">
+              <div class="kpi-label">Hoy, sin la nueva deuda</div>
+              <div class="kpi-value">2,81</div>
+              <div class="kpi-ref">Puede pagar 2,81 veces sus cuotas actuales</div>
+            </div>
+            <div class="kpi red">
+              <div class="kpi-label">Si pide los 300.000&nbsp;&euro;</div>
+              <div class="kpi-value">1,04</div>
+              <div class="kpi-ref">Justo al borde de la quiebra</div>
+            </div>
+          </div>
+          <div class="callout red">
+            <strong>El problema est&aacute; claro:</strong> Metalmaq hoy va holgada (2,81). Pero sumando la cuota nueva de 51.000&nbsp;&euro;, baja a 1,04. <em>Estar&iacute;a pagando casi todo lo que genera al banco, sin nada de col­ch&oacute;n.</em>
+          </div>
+          <p>La herramienta calcula autom&aacute;ticamente <strong>la cuota m&aacute;xima que Metalmaq S&iacute; puede pagar</strong> manteniendo el margen m&iacute;nimo de seguridad (1,25):</p>
+          <div class="callout" style="text-align:center; font-size:20px; font-weight:700; color:#fff;">
+            Cuota m&aacute;xima real: <span class="state-amber">37.333 &euro;/a&ntilde;o</span><br>
+            <span style="font-size:15px; color:#c8c8d0; font-weight:400;">La operaci&oacute;n solicitada supera en 13.667&nbsp;&euro; ese l&iacute;mite.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 · Señales + stress -->
+    <div class="slide" data-module="2">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M2</div><div class="slide-number">SLIDE 4</div></div>
+          <div class="module-label">&iquest;La empresa es el problema, o solo la operaci&oacute;n?</div>
+          <div class="slide-subtitle">La herramienta revisa 5 alarmas y hace una prueba de resistencia</div>
+        </div>
+        <div class="slide-content">
+          <p>Antes de descartar nada, comprobamos si Metalmaq es una empresa sana o ya ven&iacute;a mal. La herramienta mira <strong>5 se&ntilde;ales</strong>:</p>
+          <table class="data">
+            <thead><tr><th>La herramienta pregunta&hellip;</th><th>En Metalmaq</th><th>Resultado</th></tr></thead>
+            <tbody>
+              <tr><td>&iquest;Puede pagar c&oacute;modamente la nueva cuota?</td><td>No (cobertura 1,04)</td><td class="state-red">ALARMA</td></tr>
+              <tr><td>&iquest;Tiene demasiada deuda en relaci&oacute;n a lo que gana?</td><td>No (2,86, l&iacute;mite 3)</td><td class="state-green">OK</td></tr>
+              <tr><td>&iquest;Se le comen los intereses el beneficio?</td><td>No (17,9%, l&iacute;mite 30%)</td><td class="state-green">OK</td></tr>
+              <tr><td>&iquest;Tiene suficiente dinero propio?</td><td>S&iacute; (31% del activo)</td><td class="state-green">OK</td></tr>
+              <tr><td>&iquest;Puede pagar sus deudas a corto plazo?</td><td>S&iacute; (+45.000&nbsp;&euro; de margen)</td><td class="state-green">OK</td></tr>
+            </tbody>
+          </table>
+          <div class="callout">
+            <strong>Conclusi&oacute;n muy importante:</strong> solo se enciende <em>una</em> alarma &mdash; y es justo la cuota del pr&eacute;stamo nuevo. Las otras 4 est&aacute;n en verde.<br>
+            <strong>Metalmaq es una empresa sana. El problema no es la empresa, es el tama&ntilde;o de la operaci&oacute;n.</strong> Eso cambia nuestra recomendaci&oacute;n: no hay que decir &laquo;no&raquo;, hay que redise&ntilde;ar la deuda.
+          </div>
+          <h3 class="section-title">Y si las ventas caen&hellip;</h3>
+          <p>La herramienta hace autom&aacute;ticamente una <strong>prueba de resistencia</strong>: simula qu&eacute; pasar&iacute;a si las ventas bajaran un 10 o 20%.</p>
+          <table class="data">
+            <thead><tr><th>Escenario</th><th class="num">Dinero generado</th><th class="num">Cobertura</th><th>Resultado</th></tr></thead>
+            <tbody>
+              <tr><td>Hoy, con la nueva cuota</td><td class="num">84.167&nbsp;&euro;</td><td class="num">1,04</td><td class="state-red">Justo</td></tr>
+              <tr><td>Si las ventas bajan 10%</td><td class="num">75.750&nbsp;&euro;</td><td class="num">0,94</td><td class="state-red">No llega</td></tr>
+              <tr><td>Si las ventas bajan 20%</td><td class="num">67.333&nbsp;&euro;</td><td class="num">0,83</td><td class="state-red">Quiebra</td></tr>
+            </tbody>
+          </table>
+          <p><em>Con solo un 10% menos de ventas, Metalmaq no puede pagar sus cuotas. <strong>No hay margen ninguno.</strong> Eso obliga a cambiar la operaci&oacute;n antes de firmar.</em></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 · Qué le decís -->
+    <div class="slide" data-module="2">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M2</div><div class="slide-number">SLIDE 5</div></div>
+          <div class="module-label">Qu&eacute; le dec&iacute;s a Metalmaq <em>antes</em> de ir al banco</div>
+          <div class="slide-subtitle">No &laquo;no puedes&raquo;. Es &laquo;as&iacute; no, pero s&iacute; as&iacute;&raquo;</div>
+        </div>
+        <div class="slide-content">
+          <p>La herramienta genera autom&aacute;ticamente <strong>tres alternativas viables</strong>:</p>
+          <table class="data">
+            <thead><tr><th>Opci&oacute;n</th><th>Qu&eacute; le propones</th><th class="num">Cuota</th><th class="num">Cobertura</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr><td><strong>A</strong></td><td>Alargar el plazo de 7 a 10 a&ntilde;os (mismo importe). La cuota baja porque se reparte.</td><td class="num">36.900&nbsp;&euro;</td><td class="num">1,25</td><td class="state-amber">Justo</td></tr>
+              <tr><td><strong>B</strong></td><td>Pedir 200.000&nbsp;&euro; al banco y aportar 100.000&nbsp;&euro; de recursos propios.</td><td class="num">34.300&nbsp;&euro;</td><td class="num">1,32</td><td class="state-green">Bueno</td></tr>
+              <tr><td><strong>C</strong></td><td>Leasing 7 a&ntilde;os + 6 meses sin pagar capital + aval de una SGR.</td><td class="num">~38.000&nbsp;&euro;</td><td class="num">1,28</td><td class="state-green">Bueno</td></tr>
+            </tbody>
+          </table>
+          <div class="callout" style="font-size:14px;">
+            <strong>Traducci&oacute;n de las palabras raras:</strong><br>
+            &bull; <strong>Leasing</strong>: alquilas la m&aacute;quina al banco con opci&oacute;n a comprarla al final. <em>Ventaja gorda</em>: toda la cuota es gasto deducible (en un pr&eacute;stamo solo deduces los intereses).<br>
+            &bull; <strong>Carencia</strong>: los primeros meses solo pagas intereses, no el capital. Da aire al principio, mientras la m&aacute;quina empieza a dar dinero.<br>
+            &bull; <strong>SGR</strong>: Sociedad de Garant&iacute;a Rec&iacute;proca. <em>Aval&oacute;n</em> p&uacute;blico-privado que responde ante el banco si la empresa no paga. El banco se f&iacute;a m&aacute;s y baja el tipo.
+          </div>
+          <ul>
+            <li><strong>1. La operaci&oacute;n de 300.000&nbsp;&euro; a 7 a&ntilde;os tal como est&aacute; es arriesgada.</strong> No por tu empresa, que es sana. Por el tama&ntilde;o de la cuota.</li>
+            <li><strong>2. Te propongo la Opci&oacute;n B:</strong> pedir 200.000&nbsp;&euro; y aportar 100.000&nbsp;&euro; propios. Si puedes, es la m&aacute;s segura.</li>
+            <li><strong>3. Si no puedes aportar, ve con la Opci&oacute;n C:</strong> leasing + aval SGR. Mantienes los 300.000&nbsp;&euro;, te deduces toda la cuota fiscalmente, y tienes 6 meses de margen.</li>
+            <li><strong>4. La A (alargar a 10 a&ntilde;os) solo si no consigues B ni C.</strong> Te deja al borde del m&iacute;nimo, sin col­ch&oacute;n.</li>
+          </ul>
+          <div class="callout">
+            <strong>El valor de esto:</strong> el cliente va al banco <em>sabiendo qu&eacute; pedir</em> y con tres alternativas. El banco lo percibe como un cliente preparado, le ofrece mejores condiciones. Y vosotros hab&eacute;is pasado de <em>preparar papeles</em> a <strong>dise&ntilde;ar operaciones</strong>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="nav-arrow nav-prev" id="prevBtn" onclick="go(-1)">&larr;</div>
+<div class="nav-arrow nav-next" id="nextBtn" onclick="go(1)">&rarr;</div>
+
+<div class="minimap" id="minimap">
+  <div class="minimap-dot active" data-i="0" onclick="goTo(0)"></div>
+  <div class="minimap-dot" data-i="1" onclick="goTo(1)"></div>
+  <div class="minimap-dot" data-i="2" onclick="goTo(2)"></div>
+  <div class="minimap-dot" data-i="3" onclick="goTo(3)"></div>
+  <div class="minimap-dot" data-i="4" onclick="goTo(4)"></div>
+</div>
+
+<script>
+const total = 5;
+let current = 0;
+let fontSize = 16;
+
+const track = document.getElementById('track');
+const counter = document.getElementById('counter');
+const progress = document.getElementById('progress');
+const dots = document.querySelectorAll('.minimap-dot');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const allSlides = document.querySelectorAll('.slide');
+
+function update() {
+  track.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+  counter.textContent = (current + 1) + ' / ' + total;
+  progress.style.width = (((current + 1) / total) * 100) + '%';
+  dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+  prevBtn.classList.toggle('disabled', current === 0);
+  nextBtn.classList.toggle('disabled', current === total - 1);
+  allSlides[current].scrollTop = 0;
+}
+
+function go(dir) {
+  var next = current + dir;
+  if (next >= 0 && next < total) { current = next; update(); }
+}
+
+function goTo(i) { current = i; update(); }
+
+function changeFontSize(delta) {
+  fontSize = Math.max(12, Math.min(24, fontSize + delta));
+  document.querySelectorAll('.slide-content p, .slide-content li').forEach(function(p) {
+    p.style.fontSize = fontSize + 'px';
+  });
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); go(1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(-1); }
+  else if (e.key === 'Home') { e.preventDefault(); current = 0; update(); }
+  else if (e.key === 'End') { e.preventDefault(); current = total - 1; update(); }
+  else if (e.key === '+' || e.key === '=') { changeFontSize(1); }
+  else if (e.key === '-') { changeFontSize(-1); }
+});
+
+var touchStartX = 0;
+document.addEventListener('touchstart', function(e) { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', function(e) {
+  var diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 50) go(diff > 0 ? 1 : -1);
+});
+
+update();
+</script>
+</body>
+</html>

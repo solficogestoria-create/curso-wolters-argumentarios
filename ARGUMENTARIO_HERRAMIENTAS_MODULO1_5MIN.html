@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Argumentario Herramientas — Módulo 1 · Cuadro de Mando del Circulante</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0a0a0f;
+    color: #e8e8ed;
+    overflow: hidden;
+    height: 100vh;
+    user-select: none;
+  }
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 52px;
+    background: rgba(15,15,25,0.95); backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; z-index: 100;
+  }
+  .topbar-title { font-size: 13px; font-weight: 500; color: #888; letter-spacing: 0.5px; text-transform: uppercase; }
+  .topbar-module { font-size: 12px; font-weight: 500; color: #aaa; }
+  .topbar-counter {
+    font-size: 14px; font-weight: 600; color: #fff;
+    background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3);
+    padding: 4px 14px; border-radius: 20px;
+  }
+  .topbar-keys { font-size: 11px; color: #555; }
+  .topbar-keys kbd {
+    display: inline-block; background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 4px;
+    padding: 2px 6px; font-family: inherit; font-size: 11px; color: #888; margin: 0 2px;
+  }
+  .progress-bar { position: fixed; top: 52px; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.04); z-index: 100; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6); transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 0 2px 2px 0; }
+  .slides-viewport { position: fixed; top: 55px; left: 0; right: 0; bottom: 0; overflow: hidden; }
+  .slides-track { display: flex; height: 100%; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+  .slide {
+    min-width: 100vw; height: 100%;
+    display: flex; justify-content: center; align-items: flex-start;
+    padding: 36px 60px; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent;
+  }
+  .slide::-webkit-scrollbar { width: 6px; }
+  .slide::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+  .slide-inner { max-width: 880px; width: 100%; }
+  .slide-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .slide-number-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .module-badge {
+    font-size: 11px; font-weight: 700; color: #fff;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    padding: 3px 10px; border-radius: 12px; letter-spacing: 0.5px;
+  }
+  .module-label { font-size: 11px; font-weight: 500; color: #8888aa; letter-spacing: 0.3px; margin-bottom: 6px; }
+  .slide-number { font-size: 12px; font-weight: 600; color: #6366f1; text-transform: uppercase; letter-spacing: 1.5px; }
+  .slide-subtitle { font-size: 24px; font-weight: 600; color: #fff; line-height: 1.3; }
+  .slide-content p { font-size: 16px; line-height: 1.7; color: #c8c8d0; margin-bottom: 12px; }
+  .slide-content h3.section-title {
+    font-size: 18px; font-weight: 600; color: #e0e0ff;
+    margin: 18px 0 10px 0; padding-left: 12px; border-left: 3px solid #6366f1;
+  }
+  .slide-content strong { color: #fff; font-weight: 600; }
+  .slide-content em { color: #b0b0d0; }
+  .slide-content ul { margin: 10px 0; padding-left: 22px; }
+  .slide-content li { font-size: 15.5px; line-height: 1.65; color: #c8c8d0; margin-bottom: 7px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 14px 0 16px 0; }
+  .kpi { padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); }
+  .kpi-label { font-size: 11px; color: #8888aa; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; }
+  .kpi-value { font-size: 24px; font-weight: 700; color: #fff; }
+  .kpi-ref { font-size: 11px; color: #6d6d85; margin-top: 2px; }
+  .kpi.red { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.06); }
+  .kpi.red .kpi-value { color: #f87171; }
+  .kpi.amber { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.06); }
+  .kpi.amber .kpi-value { color: #fbbf24; }
+  .kpi.green { border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.06); }
+  .kpi.green .kpi-value { color: #34d399; }
+  table.data { width: 100%; border-collapse: collapse; margin: 12px 0 16px 0; font-size: 14.5px; }
+  table.data th, table.data td { padding: 9px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  table.data th { font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: #8888aa; font-weight: 600; }
+  table.data td { color: #c8c8d0; }
+  table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .state-red { color: #f87171; font-weight: 600; }
+  .state-amber { color: #fbbf24; font-weight: 600; }
+  .state-green { color: #34d399; font-weight: 600; }
+  .nav-arrow {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    color: #888; font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; z-index: 50;
+  }
+  .nav-arrow:hover { background: rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.4); color: #fff; }
+  .nav-arrow.disabled { opacity: 0.2; pointer-events: none; }
+  .nav-prev { left: 16px; } .nav-next { right: 16px; }
+  .minimap {
+    position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 6px; padding: 6px 14px;
+    background: rgba(15,15,25,0.9); border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.06); z-index: 50;
+  }
+  .minimap-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(99,102,241,0.25); cursor: pointer; transition: all 0.3s; }
+  .minimap-dot:hover { background: rgba(99,102,241,0.6); transform: scale(1.3); }
+  .minimap-dot.active { background: #6366f1; transform: scale(1.4); box-shadow: 0 0 8px rgba(99,102,241,0.5); }
+  .font-controls { display: flex; gap: 4px; align-items: center; }
+  .font-btn { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #888; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .font-btn:hover { background: rgba(99,102,241,0.15); color: #fff; }
+  .callout { padding: 14px 18px; border-radius: 10px; border-left: 3px solid #6366f1; background: rgba(99,102,241,0.08); margin: 12px 0; color: #e8e8ed; font-size: 15.5px; line-height: 1.6; }
+  .callout.red { border-left-color: #ef4444; background: rgba(239,68,68,0.08); }
+  .callout.amber { border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+  .callout strong { color: #fff; }
+  .quote { font-size: 18px; line-height: 1.5; color: #fff; padding: 16px 20px; background: rgba(99,102,241,0.08); border-radius: 10px; border: 1px solid rgba(99,102,241,0.2); margin: 12px 0; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-title">Argumentario &mdash; M&oacute;dulo 1 &middot; Cuadro de Mando del Circulante</span>
+  <span class="topbar-module">Caso SaborMed S.L.</span>
+  <span class="topbar-counter" id="counter">1 / 5</span>
+  <div class="font-controls">
+    <button class="font-btn" onclick="changeFontSize(-1)">A-</button>
+    <button class="font-btn" onclick="changeFontSize(1)">A+</button>
+  </div>
+  <span class="topbar-keys"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> navegar</span>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+<div class="slides-viewport">
+  <div class="slides-track" id="track">
+
+    <!-- SLIDE 1 · El caso -->
+    <div class="slide" data-module="1">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M1</div><div class="slide-number">SLIDE 1</div></div>
+          <div class="module-label">El caso</div>
+          <div class="slide-subtitle">Un cliente viene a pediros papeles para el banco</div>
+        </div>
+        <div class="slide-content">
+          <p><strong>SaborMed, S.L.</strong> es una distribuidora de alimentaci&oacute;n, lleva 11 a&ntilde;os funcionando, factura 500.000&nbsp;&euro; y gana 40.000&nbsp;&euro; al a&ntilde;o. Entra al despacho y os dice:</p>
+          <div class="quote">&laquo;Voy al banco a pedir una p&oacute;liza de 80.000&nbsp;&euro;. &iquest;Me preparas los papeles?&raquo;</div>
+          <p>Hasta hoy dir&iacute;ais &laquo;claro, aqu&iacute; tienes&raquo;. A partir de ahora, con el <strong>Cuadro de Mando del Circulante</strong>, respond&eacute;is:</p>
+          <div class="quote" style="border-color: rgba(99,102,241,0.5); background: rgba(99,102,241,0.12);">&laquo;Espera. Antes de ir al banco, d&eacute;jame mirar tus n&uacute;meros cinco minutos.&raquo;</div>
+          <p>Y en 5 minutos le vais a decir <strong>exactamente cu&aacute;nto dinero necesita</strong> y si la p&oacute;liza de 80.000&nbsp;&euro; le sirve o no.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 · Abrimos la herramienta -->
+    <div class="slide" data-module="1">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M1</div><div class="slide-number">SLIDE 2</div></div>
+          <div class="module-label">Abrimos la herramienta</div>
+          <div class="slide-subtitle">Metemos 3 cifras y obtenemos <em>las NOF</em></div>
+        </div>
+        <div class="slide-content">
+          <p>Abrimos el Excel. Solo hay que meter <strong>3 cifras del balance</strong> de SaborMed:</p>
+          <table class="data">
+            <thead><tr><th>Qu&eacute; metemos</th><th>En cristiano</th><th class="num">Importe</th></tr></thead>
+            <tbody>
+              <tr><td>Clientes</td><td>Facturas que ha emitido pero a&uacute;n no ha cobrado</td><td class="num">123.000&nbsp;&euro;</td></tr>
+              <tr><td>Existencias</td><td>Producto en el almac&eacute;n esperando venderse</td><td class="num">32.000&nbsp;&euro;</td></tr>
+              <tr><td>Proveedores</td><td>Facturas que ha recibido pero a&uacute;n no ha pagado</td><td class="num">41.000&nbsp;&euro;</td></tr>
+            </tbody>
+          </table>
+          <p>La herramienta hace la resta sola y nos da <strong>las NOF</strong>:</p>
+          <div class="callout" style="text-align:center; font-size:22px; font-weight:700; color:#fff;">
+            123.000 + 32.000 &minus; 41.000 = <span class="state-red">114.000&nbsp;&euro;</span>
+          </div>
+          <p><strong>&iquest;Qu&eacute; significan esos 114.000&nbsp;&euro;?</strong> Es el dinero que SaborMed necesita tener aparcado <em>siempre</em> para que el negocio funcione. No es opcional. Mientras facture a clientes que tardan en pagar y tenga que comprar producto, <strong>esos 114.000&nbsp;&euro; tienen que estar s&iacute; o s&iacute;</strong>.</p>
+          <div class="callout red">
+            <strong>Primer descubrimiento:</strong> SaborMed necesita 114.000&nbsp;&euro; <em>pero viene a pedir solo 80.000</em>. Le faltan <strong>34.000&nbsp;&euro;</strong>. Por eso su p&oacute;liza actual est&aacute; siempre al tope: est&aacute; mal dimensionada.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 · Los días -->
+    <div class="slide" data-module="1">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M1</div><div class="slide-number">SLIDE 3</div></div>
+          <div class="module-label">La herramienta convierte los n&uacute;meros en d&iacute;as</div>
+          <div class="slide-subtitle">As&iacute; ve&eacute;is de un vistazo d&oacute;nde est&aacute; el problema</div>
+        </div>
+        <div class="slide-content">
+          <p>Los euros no dicen mucho. <strong>Los d&iacute;as s&iacute;.</strong> La herramienta traduce autom&aacute;ticamente las cifras a plazos de tiempo:</p>
+          <div class="kpi-grid">
+            <div class="kpi red">
+              <div class="kpi-label">Tarda en cobrar</div>
+              <div class="kpi-value">90 d&iacute;as</div>
+              <div class="kpi-ref">Lo normal: menos de 60</div>
+            </div>
+            <div class="kpi amber">
+              <div class="kpi-label">Stock en almac&eacute;n</div>
+              <div class="kpi-value">29 d&iacute;as</div>
+              <div class="kpi-ref">Lo normal: menos de 45</div>
+            </div>
+            <div class="kpi green">
+              <div class="kpi-label">Tarda en pagar</div>
+              <div class="kpi-value">36 d&iacute;as</div>
+              <div class="kpi-ref">Lo normal: m&aacute;s de 30</div>
+            </div>
+          </div>
+          <div class="callout red">
+            <strong>Aqu&iacute; est&aacute; el problema:</strong> SaborMed paga a sus proveedores en <strong>36 d&iacute;as</strong> pero tarda <strong>90 d&iacute;as</strong> en cobrar de sus clientes. <em>Durante 83 d&iacute;as al a&ntilde;o est&aacute; poniendo dinero de su bolsillo</em>.
+          </div>
+          <p>Como SaborMed vende unos 1.370&nbsp;&euro; al d&iacute;a, esos 83 d&iacute;as &laquo;en el aire&raquo; son unos 114.000&nbsp;&euro; bloqueados. <strong>Encaja exactamente con las NOF.</strong> Los dos caminos llegan al mismo sitio: la empresa necesita financiar esos 114.000&nbsp;&euro; de forma permanente.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 · Señales de alarma -->
+    <div class="slide" data-module="1">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M1</div><div class="slide-number">SLIDE 4</div></div>
+          <div class="module-label">La herramienta enciende las alarmas solas</div>
+          <div class="slide-subtitle">3 rojas de 4 &rarr; situaci&oacute;n CR&Iacute;TICA</div>
+        </div>
+        <div class="slide-content">
+          <p>El Cuadro de Mando revisa autom&aacute;ticamente <strong>4 se&ntilde;ales</strong> comparando este a&ntilde;o con el anterior. Si alguna salta, pone sem&aacute;foro rojo:</p>
+          <table class="data">
+            <thead><tr><th>La herramienta pregunta&hellip;</th><th>En SaborMed</th><th>Resultado</th></tr></thead>
+            <tbody>
+              <tr><td>&iquest;Los clientes tardan cada vez m&aacute;s en pagar?</td><td>S&iacute; (+12% vs ventas +11%)</td><td class="state-red">ALARMA</td></tr>
+              <tr><td>&iquest;Se le est&aacute; acumulando stock?</td><td>S&iacute; (+14% vs ventas +11%)</td><td class="state-red">ALARMA</td></tr>
+              <tr><td>&iquest;Le est&aacute;n apretando los proveedores?</td><td>No (aguantan bien)</td><td class="state-green">OK</td></tr>
+              <tr><td>&iquest;Tiene la p&oacute;liza siempre al tope?</td><td>S&iacute; (al 90%)</td><td class="state-red">ALARMA</td></tr>
+            </tbody>
+          </table>
+          <div class="callout red">
+            <strong>3 se&ntilde;ales activas &rarr; sem&aacute;foro global <span class="state-red">CR&Iacute;TICO</span>.</strong><br>
+            SaborMed est&aacute; cobrando peor, acumulando m&aacute;s stock, <em>y ya no tiene margen en la p&oacute;liza actual</em>. Hay que actuar antes o al mismo tiempo que se pide m&aacute;s financiaci&oacute;n.
+          </div>
+          <p><em>Esto no es opini&oacute;n vuestra: son c&aacute;lculos autom&aacute;ticos sobre la propia contabilidad del cliente. Pod&eacute;is imprimirlo y entreg&aacute;rselo con vuestra firma.</em></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 · Qué le decís -->
+    <div class="slide" data-module="1">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M1</div><div class="slide-number">SLIDE 5</div></div>
+          <div class="module-label">Qu&eacute; le dec&iacute;s a SaborMed <em>antes</em> de que vaya al banco</div>
+          <div class="slide-subtitle">4 frases concretas que le ahorran dinero</div>
+        </div>
+        <div class="slide-content">
+          <ul>
+            <li><strong>1. S&iacute;, pide la p&oacute;liza de 80.000&nbsp;&euro;. Es el instrumento correcto.</strong><br>
+            <em>Es una necesidad permanente y la p&oacute;liza es la &uacute;nica opci&oacute;n que se &laquo;renueva&raquo; sola. Un pr&eacute;stamo a plazo no sirve: la deuda se va amortizando, pero t&uacute; sigues necesitando esos 114.000&nbsp;&euro; todos los d&iacute;as.</em></li>
+            <li><strong>2. Intenta cobrar antes.</strong> <em>Si pasas de 90 a 60 d&iacute;as de cobro, tus NOF bajan de 114.000 a 77.000&nbsp;&euro;. Ideas: descuento por pronto pago, o hacer factoring con el banco (el banco te adelanta el cobro de las facturas a cambio de una comisi&oacute;n del 1-2%).</em></li>
+            <li><strong>3. Negocia pagar m&aacute;s tarde a tus proveedores.</strong> <em>Pasa de pagar a 36 d&iacute;as a 45. Cada d&iacute;a que ganas son 1.370&nbsp;&euro; menos que tienes que financiar. Y no cuesta nada intentarlo.</em></li>
+            <li><strong>4. No te cases con un solo banco.</strong> <em>Abre una l&iacute;nea de factoring en otro banco. Si el primero un d&iacute;a no te renueva la p&oacute;liza, no te quedas colgado.</em></li>
+          </ul>
+          <div class="callout">
+            <strong>El valor de esto:</strong> no entreg&aacute;is papeles &mdash; entreg&aacute;is un <strong>plan</strong>. El cliente va al banco sabiendo qu&eacute; pedir y por qu&eacute;. Y vosotros dej&aacute;is de ser &laquo;los que hacen la contabilidad&raquo; para ser <em>el asesor financiero de confianza</em>. Eso es lo que se cobra.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="nav-arrow nav-prev" id="prevBtn" onclick="go(-1)">&larr;</div>
+<div class="nav-arrow nav-next" id="nextBtn" onclick="go(1)">&rarr;</div>
+
+<div class="minimap" id="minimap">
+  <div class="minimap-dot active" data-i="0" onclick="goTo(0)"></div>
+  <div class="minimap-dot" data-i="1" onclick="goTo(1)"></div>
+  <div class="minimap-dot" data-i="2" onclick="goTo(2)"></div>
+  <div class="minimap-dot" data-i="3" onclick="goTo(3)"></div>
+  <div class="minimap-dot" data-i="4" onclick="goTo(4)"></div>
+</div>
+
+<script>
+const total = 5;
+let current = 0;
+let fontSize = 16;
+
+const track = document.getElementById('track');
+const counter = document.getElementById('counter');
+const progress = document.getElementById('progress');
+const dots = document.querySelectorAll('.minimap-dot');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const allSlides = document.querySelectorAll('.slide');
+
+function update() {
+  track.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+  counter.textContent = (current + 1) + ' / ' + total;
+  progress.style.width = (((current + 1) / total) * 100) + '%';
+  dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+  prevBtn.classList.toggle('disabled', current === 0);
+  nextBtn.classList.toggle('disabled', current === total - 1);
+  allSlides[current].scrollTop = 0;
+}
+
+function go(dir) {
+  var next = current + dir;
+  if (next >= 0 && next < total) { current = next; update(); }
+}
+
+function goTo(i) { current = i; update(); }
+
+function changeFontSize(delta) {
+  fontSize = Math.max(12, Math.min(24, fontSize + delta));
+  document.querySelectorAll('.slide-content p, .slide-content li').forEach(function(p) {
+    p.style.fontSize = fontSize + 'px';
+  });
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); go(1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(-1); }
+  else if (e.key === 'Home') { e.preventDefault(); current = 0; update(); }
+  else if (e.key === 'End') { e.preventDefault(); current = total - 1; update(); }
+  else if (e.key === '+' || e.key === '=') { changeFontSize(1); }
+  else if (e.key === '-') { changeFontSize(-1); }
+});
+
+var touchStartX = 0;
+document.addEventListener('touchstart', function(e) { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', function(e) {
+  var diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 50) go(diff > 0 ? 1 : -1);
+});
+
+update();
+</script>
+</body>
+</html>

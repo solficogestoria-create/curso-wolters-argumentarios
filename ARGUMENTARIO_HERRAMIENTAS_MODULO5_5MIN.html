@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Argumentario Herramientas — Módulo 5 · Planificación Comercial CFO Externo</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0a0a0f;
+    color: #e8e8ed;
+    overflow: hidden;
+    height: 100vh;
+    user-select: none;
+  }
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 52px;
+    background: rgba(15,15,25,0.95); backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; z-index: 100;
+  }
+  .topbar-title { font-size: 13px; font-weight: 500; color: #888; letter-spacing: 0.5px; text-transform: uppercase; }
+  .topbar-module { font-size: 12px; font-weight: 500; color: #aaa; }
+  .topbar-counter {
+    font-size: 14px; font-weight: 600; color: #fff;
+    background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.3);
+    padding: 4px 14px; border-radius: 20px;
+  }
+  .topbar-keys { font-size: 11px; color: #555; }
+  .topbar-keys kbd {
+    display: inline-block; background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 4px;
+    padding: 2px 6px; font-family: inherit; font-size: 11px; color: #888; margin: 0 2px;
+  }
+  .progress-bar { position: fixed; top: 52px; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.04); z-index: 100; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #a855f7, #ec4899); transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 0 2px 2px 0; }
+  .slides-viewport { position: fixed; top: 55px; left: 0; right: 0; bottom: 0; overflow: hidden; }
+  .slides-track { display: flex; height: 100%; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+  .slide {
+    min-width: 100vw; height: 100%;
+    display: flex; justify-content: center; align-items: flex-start;
+    padding: 36px 60px; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent;
+  }
+  .slide::-webkit-scrollbar { width: 6px; }
+  .slide::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+  .slide-inner { max-width: 880px; width: 100%; }
+  .slide-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .slide-number-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .module-badge {
+    font-size: 11px; font-weight: 700; color: #fff;
+    background: linear-gradient(135deg, #a855f7, #ec4899);
+    padding: 3px 10px; border-radius: 12px; letter-spacing: 0.5px;
+  }
+  .module-label { font-size: 11px; font-weight: 500; color: #8888aa; letter-spacing: 0.3px; margin-bottom: 6px; }
+  .slide-number { font-size: 12px; font-weight: 600; color: #a855f7; text-transform: uppercase; letter-spacing: 1.5px; }
+  .slide-subtitle { font-size: 24px; font-weight: 600; color: #fff; line-height: 1.3; }
+  .slide-content p { font-size: 16px; line-height: 1.7; color: #c8c8d0; margin-bottom: 12px; }
+  .slide-content h3.section-title {
+    font-size: 18px; font-weight: 600; color: #f3e8ff;
+    margin: 18px 0 10px 0; padding-left: 12px; border-left: 3px solid #a855f7;
+  }
+  .slide-content strong { color: #fff; font-weight: 600; }
+  .slide-content em { color: #b0b0d0; }
+  .slide-content ul { margin: 10px 0; padding-left: 22px; }
+  .slide-content li { font-size: 15.5px; line-height: 1.65; color: #c8c8d0; margin-bottom: 7px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 14px 0 16px 0; }
+  .kpi { padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); }
+  .kpi-label { font-size: 11px; color: #8888aa; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; }
+  .kpi-value { font-size: 24px; font-weight: 700; color: #fff; }
+  .kpi-ref { font-size: 11px; color: #6d6d85; margin-top: 2px; }
+  .kpi.red { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.06); }
+  .kpi.red .kpi-value { color: #f87171; }
+  .kpi.amber { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.06); }
+  .kpi.amber .kpi-value { color: #fbbf24; }
+  .kpi.green { border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.06); }
+  .kpi.green .kpi-value { color: #34d399; }
+  .kpi.purple { border-color: rgba(168,85,247,0.4); background: rgba(168,85,247,0.06); }
+  .kpi.purple .kpi-value { color: #c084fc; }
+  table.data { width: 100%; border-collapse: collapse; margin: 12px 0 16px 0; font-size: 14.5px; }
+  table.data th, table.data td { padding: 9px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  table.data th { font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: #8888aa; font-weight: 600; }
+  table.data td { color: #c8c8d0; }
+  table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .state-red { color: #f87171; font-weight: 600; }
+  .state-amber { color: #fbbf24; font-weight: 600; }
+  .state-green { color: #34d399; font-weight: 600; }
+  .state-purple { color: #c084fc; font-weight: 600; }
+  .nav-arrow {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    color: #888; font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; z-index: 50;
+  }
+  .nav-arrow:hover { background: rgba(168,85,247,0.15); border-color: rgba(168,85,247,0.4); color: #fff; }
+  .nav-arrow.disabled { opacity: 0.2; pointer-events: none; }
+  .nav-prev { left: 16px; } .nav-next { right: 16px; }
+  .minimap {
+    position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 6px; padding: 6px 14px;
+    background: rgba(15,15,25,0.9); border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.06); z-index: 50;
+  }
+  .minimap-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(168,85,247,0.25); cursor: pointer; transition: all 0.3s; }
+  .minimap-dot:hover { background: rgba(168,85,247,0.6); transform: scale(1.3); }
+  .minimap-dot.active { background: #a855f7; transform: scale(1.4); box-shadow: 0 0 8px rgba(168,85,247,0.5); }
+  .font-controls { display: flex; gap: 4px; align-items: center; }
+  .font-btn { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #888; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .font-btn:hover { background: rgba(168,85,247,0.15); color: #fff; }
+  .callout { padding: 14px 18px; border-radius: 10px; border-left: 3px solid #a855f7; background: rgba(168,85,247,0.08); margin: 12px 0; color: #e8e8ed; font-size: 15.5px; line-height: 1.6; }
+  .callout.green { border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+  .callout.red { border-left-color: #ef4444; background: rgba(239,68,68,0.08); }
+  .callout.amber { border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+  .callout strong { color: #fff; }
+  .quote { font-size: 18px; line-height: 1.5; color: #fff; padding: 16px 20px; background: rgba(168,85,247,0.08); border-radius: 10px; border: 1px solid rgba(168,85,247,0.2); margin: 12px 0; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-title">Argumentario &mdash; M&oacute;dulo 5 &middot; Planificaci&oacute;n Comercial CFO Externo</span>
+  <span class="topbar-module">Despacho de Carmen Soler L&oacute;pez</span>
+  <span class="topbar-counter" id="counter">1 / 5</span>
+  <div class="font-controls">
+    <button class="font-btn" onclick="changeFontSize(-1)">A-</button>
+    <button class="font-btn" onclick="changeFontSize(1)">A+</button>
+  </div>
+  <span class="topbar-keys"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> navegar</span>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+<div class="slides-viewport">
+  <div class="slides-track" id="track">
+
+    <!-- SLIDE 1 · El caso -->
+    <div class="slide" data-module="5">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M5</div><div class="slide-number">SLIDE 1</div></div>
+          <div class="module-label">El caso &mdash; esta vez el protagonista eres t&uacute;</div>
+          <div class="slide-subtitle">Carmen factura 360.000 &euro;/a&ntilde;o haciendo impuestos. Quiere m&aacute;s.</div>
+        </div>
+        <div class="slide-content">
+          <p><strong>Carmen Soler L&oacute;pez</strong> lleva un despacho unipersonal: 150 clientes fiscales, cuota media 200&nbsp;&euro;/mes, ingresos 360.000&nbsp;&euro;/a&ntilde;o. Trabaja mucho. La mayor&iacute;a de clientes solo quieren un precio bajo. Este es el d&iacute;a que se planta y dice:</p>
+          <div class="quote">&laquo;Yo tengo la contabilidad completa de estos 150 clientes. S&eacute; m&aacute;s de sus n&uacute;meros que ellos mismos. Y les cobro 200&nbsp;&euro;/mes por presentarles impuestos. Esto es un despropósito.&raquo;</div>
+          <p>La herramienta de <strong>Planificaci&oacute;n Comercial CFO Externo</strong> le va a ayudar a convertir parte de esa cartera en <strong>clientes de asesoramiento financiero continuo</strong> a 500&nbsp;&euro;/mes. Sin cambiar de despacho, sin contratar vendedores, sin romper lo que ya funciona.</p>
+          <h3 class="section-title">La oportunidad en una cifra</h3>
+          <div class="kpi-grid">
+            <div class="kpi amber">
+              <div class="kpi-label">Lo que cobra ahora por hora</div>
+              <div class="kpi-value">1,25 &euro;/h</div>
+              <div class="kpi-ref">Haciendo impuestos</div>
+            </div>
+            <div class="kpi green">
+              <div class="kpi-label">Lo que cobrar&aacute; asesorando</div>
+              <div class="kpi-value">250 &euro;/h</div>
+              <div class="kpi-ref">Servicio CFO Externo</div>
+            </div>
+            <div class="kpi purple">
+              <div class="kpi-label">Multiplicador</div>
+              <div class="kpi-value">200x</div>
+              <div class="kpi-ref">La misma profesional</div>
+            </div>
+          </div>
+          <p><em>No es magia: son los mismos datos contables, el mismo conocimiento, la misma confianza ya ganada. <strong>Solo cambia el empaquetado y la conversaci&oacute;n con el cliente.</strong></em></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 · Segmentación + Simulador -->
+    <div class="slide" data-module="5">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M5</div><div class="slide-number">SLIDE 2</div></div>
+          <div class="module-label">Paso 1 &middot; segmentar la cartera</div>
+          <div class="slide-subtitle">De 150 clientes, &iquest;a qui&eacute;nes les ofrezco esto?</div>
+        </div>
+        <div class="slide-content">
+          <p>Abrimos la herramienta. La primera hoja clasifica los clientes en <strong>3 grupos</strong>:</p>
+          <table class="data">
+            <thead><tr><th>Tipo</th><th>Qui&eacute;n entra</th><th>En el despacho de Carmen</th></tr></thead>
+            <tbody>
+              <tr><td><span class="state-green">A &middot; Candidatos</span></td><td>Facturan &gt; 300k, crecen, valoran el consejo</td><td><strong>5 clientes</strong> (Metalmaq, SaborMed, Talleres Montserrat&hellip;)</td></tr>
+              <tr><td><span class="state-amber">B &middot; Potenciales</span></td><td>Facturan 100-300k, estables, podr&iacute;an valorar en 1-2 a&ntilde;os</td><td>3 clientes</td></tr>
+              <tr><td><span class="state-red">C &middot; Solo fiscal</span></td><td>Facturan &lt; 100k, solo quieren precio</td><td>El resto</td></tr>
+            </tbody>
+          </table>
+          <p><em>De los 150, solo hace falta convertir a unos 10 para cambiar el negocio.</em></p>
+          <h3 class="section-title">El simulador a 3 a&ntilde;os</h3>
+          <p>Metes los par&aacute;metros (<em>cu&aacute;ntos clientes nuevos al a&ntilde;o, cu&aacute;nto les cobras, cu&aacute;ntas horas dedicas</em>) y te da la proyecci&oacute;n completa:</p>
+          <table class="data">
+            <thead><tr><th>Concepto</th><th class="num">Hoy</th><th class="num">A&ntilde;o 1</th><th class="num">A&ntilde;o 2</th><th class="num">A&ntilde;o 3</th></tr></thead>
+            <tbody>
+              <tr><td>Clientes CFO</td><td class="num">0</td><td class="num">10</td><td class="num">20</td><td class="num">30</td></tr>
+              <tr><td>Ingresos CFO/a&ntilde;o</td><td class="num">0</td><td class="num">60.000&nbsp;&euro;</td><td class="num">120.000&nbsp;&euro;</td><td class="num">180.000&nbsp;&euro;</td></tr>
+              <tr><td>Ingresos totales/a&ntilde;o</td><td class="num">360.000</td><td class="num">420.000</td><td class="num">480.000</td><td class="num">540.000</td></tr>
+              <tr><td><strong>Beneficio neto extra</strong></td><td class="num">0</td><td class="num state-green"><strong>+25.000</strong></td><td class="num state-green"><strong>+85.000</strong></td><td class="num state-green"><strong>+145.000</strong></td></tr>
+            </tbody>
+          </table>
+          <div class="callout green"><strong>En 3 a&ntilde;os, el despacho de Carmen gana +150.000&nbsp;&euro; al a&ntilde;o m&aacute;s de beneficio neto</strong> (ya restando el coste de contratar a una persona a partir del a&ntilde;o 1). Con <em>solo</em> 30 clientes convertidos de los 150.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 · Plan de implantación -->
+    <div class="slide" data-module="5">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M5</div><div class="slide-number">SLIDE 3</div></div>
+          <div class="module-label">Paso 2 &middot; plan de implantaci&oacute;n en 12 meses</div>
+          <div class="slide-subtitle">4 fases concretas, con checklist y fechas</div>
+        </div>
+        <div class="slide-content">
+          <p>La herramienta no es una idea vaga: es <strong>un checklist semana a semana</strong>. Cuatro fases estructuradas:</p>
+          <table class="data">
+            <thead><tr><th>Fase</th><th>Cu&aacute;ndo</th><th>Qu&eacute; se hace</th></tr></thead>
+            <tbody>
+              <tr><td><strong>1. Segmentar</strong></td><td>Mes 1</td><td>Revisar la cartera. Clasificar A/B/C. Elegir 10-15 candidatos y preparar un <em>diagn&oacute;stico previo</em> de cada uno.</td></tr>
+              <tr><td><strong>2. Piloto</strong></td><td>Meses 2-4</td><td>Elegir <strong>3 clientes piloto</strong>. Ofrecerles el servicio <em>gratis 3 meses</em> a cambio de feedback honesto. Implantar el Dashboard, la Previsi&oacute;n y la Reuni&oacute;n Mensual.</td></tr>
+              <tr><td><strong>3. Estandarizar</strong></td><td>Meses 4-6</td><td>Revisar qu&eacute; funcion&oacute;. Crear plantillas definitivas. Fijar el precio. <strong>Proceso replicable.</strong></td></tr>
+              <tr><td><strong>4. Comercializar</strong></td><td>Mes 6+</td><td>Contactar clientes tipo A con los <strong>resultados concretos</strong> de los pilotos. Meta: 10 clientes CFO al cierre del a&ntilde;o 1.</td></tr>
+            </tbody>
+          </table>
+          <div class="callout"><strong>Regla clave de la fase 2:</strong> los 3 pilotos no se cobran. El coste: 3 meses de tu tiempo. El retorno: <em>3 casos de &eacute;xito con datos reales y testimonios</em> para poder vender al resto. Es la inversi&oacute;n m&aacute;s rentable del plan.</div>
+          <p><strong>&iquest;C&oacute;mo elegir los pilotos?</strong> Tres criterios:</p>
+          <ul>
+            <li><strong>El de mejor relaci&oacute;n personal</strong> &mdash; aunque no sea el m&aacute;s rentable. Aqu&iacute; te arriesgas menos si algo sale regular.</li>
+            <li><strong>El que m&aacute;s claramente necesita ayuda financiera</strong> (tensi&oacute;n de caja, crecimiento, operaci&oacute;n bancaria pendiente).</li>
+            <li><strong>El m&aacute;s representativo</strong> del cliente-tipo al que quieres llegar. As&iacute; el caso de &eacute;xito sirve para vender a otros parecidos.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 · Dashboard + Previsión -->
+    <div class="slide" data-module="5">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M5</div><div class="slide-number">SLIDE 4</div></div>
+          <div class="module-label">Paso 3 &middot; el entregable mensual</div>
+          <div class="slide-subtitle">Dashboard de 1 p&aacute;gina + Previsi&oacute;n de tesorer&iacute;a</div>
+        </div>
+        <div class="slide-content">
+          <p>Aqu&iacute; est&aacute; la parte concreta: <strong>qu&eacute; recibe el cliente cada mes</strong>. Una p&aacute;gina con sem&aacute;foros autom&aacute;ticos. Ejemplo real de Metalmaq en diciembre 2024:</p>
+          <table class="data">
+            <thead><tr><th>Indicador</th><th class="num">Este mes</th><th class="num">Mes anterior</th><th class="num">A&ntilde;o anterior</th><th>Sem&aacute;foro</th></tr></thead>
+            <tbody>
+              <tr><td>Ventas del mes</td><td class="num">205.000</td><td class="num">198.000</td><td class="num">185.000</td><td class="state-green">VERDE</td></tr>
+              <tr><td>Margen bruto</td><td class="num">31,5%</td><td class="num">30,8%</td><td class="num">30,0%</td><td class="state-green">VERDE</td></tr>
+              <tr><td>Tesorer&iacute;a</td><td class="num">33.500</td><td class="num">28.000</td><td class="num">31.000</td><td class="state-green">VERDE</td></tr>
+              <tr><td>D&iacute;as de cobro</td><td class="num">70,2</td><td class="num">68,5</td><td class="num">65,7</td><td class="state-red">ROJO</td></tr>
+              <tr><td>Deuda financiera</td><td class="num">253.000</td><td class="num">260.000</td><td class="num">345.000</td><td class="state-green">VERDE</td></tr>
+              <tr><td>Morosos &gt; 90 d&iacute;as</td><td class="num">15.000</td><td class="num">12.000</td><td class="num">8.000</td><td class="state-red">ROJO</td></tr>
+            </tbody>
+          </table>
+          <div class="callout amber"><strong>Lo que ve el cliente de un vistazo:</strong> negocio en buena forma (ventas, margen y tesorer&iacute;a crecen), pero con <em>2 focos rojos</em>: los clientes tardan m&aacute;s en pagar y los morosos crecen. Son los temas concretos que se trabajan en la reuni&oacute;n mensual.</div>
+          <h3 class="section-title">La previsi&oacute;n de tesorer&iacute;a a 13 semanas</h3>
+          <p>El entregable que m&aacute;s valora el empresario, porque <strong>convierte el miedo a quedarse sin caja en un plan concreto</strong>. Muestra semana a semana cu&aacute;nto va a entrar y cu&aacute;nto va a salir, y en qu&eacute; semanas habr&aacute; tensi&oacute;n.</p>
+          <div class="callout"><strong>Regla de oro:</strong> si en alguna semana el saldo acumulado sale negativo, hay que actuar <em>antes</em> de que llegue esa fecha. La previsi&oacute;n no es para reaccionar, <strong>es para anticipar con semanas de margen</strong>.</div>
+          <p><em>Tiempo total de actualizaci&oacute;n mensual por cliente: <strong>~15 minutos</strong> si la contabilidad est&aacute; al d&iacute;a.</em></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 · Reunión + Venta -->
+    <div class="slide" data-module="5">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M5</div><div class="slide-number">SLIDE 5</div></div>
+          <div class="module-label">Paso 4 &middot; la reuni&oacute;n mensual y c&oacute;mo se vende</div>
+          <div class="slide-subtitle">No vendes un servicio. Compartes un diagn&oacute;stico.</div>
+        </div>
+        <div class="slide-content">
+          <h3 class="section-title">Estructura de la reuni&oacute;n mensual &middot; 45-60 min</h3>
+          <table class="data">
+            <thead><tr><th>Bloque</th><th>Tiempo</th><th>Qu&eacute; pasa</th></tr></thead>
+            <tbody>
+              <tr><td>1. Resumen ejecutivo</td><td>5 min</td><td>Abres con el Dashboard. Sem&aacute;foros. <em>&laquo;&iquest;C&oacute;mo va tu negocio este mes?&raquo;</em>. Escuchas.</td></tr>
+              <tr><td>2. Puntos cr&iacute;ticos</td><td>15 min</td><td>Profundizas en los KPIs en rojo/amarillo. <strong>En euros, no en ratios.</strong></td></tr>
+              <tr><td>3. Plan de acci&oacute;n</td><td>15 min</td><td>1 o 2 acciones concretas. Con responsable y fecha. El cliente se va con deberes claros.</td></tr>
+              <tr><td>4. Previsi&oacute;n</td><td>10 min</td><td>Ense&ntilde;as la previsi&oacute;n de 13 semanas. Semanas de riesgo. Cierre.</td></tr>
+            </tbody>
+          </table>
+          <div class="callout red"><strong>Regla absoluta de la reuni&oacute;n:</strong> NO se dice &laquo;cuenta 430&raquo;, &laquo;NOF&raquo; ni &laquo;DSCR&raquo;. Se habla de <strong>clientes, caja, cobrar y pagar</strong>. El empresario no habla el idioma contable. <em>Nosotros s&iacute; hablamos su idioma de negocio. Esa es nuestra ventaja.</em></div>
+          <h3 class="section-title">C&oacute;mo se vende &mdash; la llamada inicial</h3>
+          <div class="quote">&laquo;He estado revisando tu contabilidad del trimestre y he visto algo que me gustar&iacute;a comentarte. Tu per&iacute;odo de cobro ha subido 4 d&iacute;as este a&ntilde;o &mdash; ahora tardas 70 d&iacute;as en cobrar. Eso significa que tienes atrapados unos 35.000&nbsp;&euro; m&aacute;s que el a&ntilde;o pasado. Quiero contarte c&oacute;mo lo estamos manejando con otros clientes.&raquo;</div>
+          <div class="callout green"><strong>Esto no es vender un servicio.</strong> Es compartir un diagn&oacute;stico. La venta es consecuencia de que el cliente <em>ve que ya sabes m&aacute;s de su negocio de lo que &eacute;l pensaba</em>. Cuando lo ve, el precio deja de ser un problema.</div>
+          <h3 class="section-title">El pack seg&uacute;n el tipo de cliente</h3>
+          <table class="data">
+            <thead><tr><th>Segmento</th><th>Facturaci&oacute;n</th><th>Cuota/mes</th></tr></thead>
+            <tbody>
+              <tr><td>B&aacute;sico</td><td>300-600k</td><td>300-400&nbsp;&euro;</td></tr>
+              <tr><td>Est&aacute;ndar</td><td>600-1.500k</td><td>400-600&nbsp;&euro;</td></tr>
+              <tr><td>Premium</td><td>&gt; 1,5M</td><td>600-800&nbsp;&euro;</td></tr>
+            </tbody>
+          </table>
+          <div class="callout"><strong>La promesa final:</strong> 500&nbsp;&euro;/mes son 6.000&nbsp;&euro;/a&ntilde;o. Para una empresa de 1M&nbsp;&euro; son el 0,6% de las ventas. Si el servicio le ayuda a <strong>cobrar 5 d&iacute;as antes</strong>, libera 13.700&nbsp;&euro; de caja. <em>El retorno es inmediato y cuantificable desde el primer mes.</em></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="nav-arrow nav-prev" id="prevBtn" onclick="go(-1)">&larr;</div>
+<div class="nav-arrow nav-next" id="nextBtn" onclick="go(1)">&rarr;</div>
+
+<div class="minimap" id="minimap">
+  <div class="minimap-dot active" data-i="0" onclick="goTo(0)"></div>
+  <div class="minimap-dot" data-i="1" onclick="goTo(1)"></div>
+  <div class="minimap-dot" data-i="2" onclick="goTo(2)"></div>
+  <div class="minimap-dot" data-i="3" onclick="goTo(3)"></div>
+  <div class="minimap-dot" data-i="4" onclick="goTo(4)"></div>
+</div>
+
+<script>
+const total = 5;
+let current = 0;
+let fontSize = 16;
+
+const track = document.getElementById('track');
+const counter = document.getElementById('counter');
+const progress = document.getElementById('progress');
+const dots = document.querySelectorAll('.minimap-dot');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const allSlides = document.querySelectorAll('.slide');
+
+function update() {
+  track.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+  counter.textContent = (current + 1) + ' / ' + total;
+  progress.style.width = (((current + 1) / total) * 100) + '%';
+  dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+  prevBtn.classList.toggle('disabled', current === 0);
+  nextBtn.classList.toggle('disabled', current === total - 1);
+  allSlides[current].scrollTop = 0;
+}
+
+function go(dir) {
+  var next = current + dir;
+  if (next >= 0 && next < total) { current = next; update(); }
+}
+
+function goTo(i) { current = i; update(); }
+
+function changeFontSize(delta) {
+  fontSize = Math.max(12, Math.min(24, fontSize + delta));
+  document.querySelectorAll('.slide-content p, .slide-content li').forEach(function(p) {
+    p.style.fontSize = fontSize + 'px';
+  });
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); go(1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(-1); }
+  else if (e.key === 'Home') { e.preventDefault(); current = 0; update(); }
+  else if (e.key === 'End') { e.preventDefault(); current = total - 1; update(); }
+  else if (e.key === '+' || e.key === '=') { changeFontSize(1); }
+  else if (e.key === '-') { changeFontSize(-1); }
+});
+
+var touchStartX = 0;
+document.addEventListener('touchstart', function(e) { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', function(e) {
+  var diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 50) go(diff > 0 ? 1 : -1);
+});
+
+update();
+</script>
+</body>
+</html>

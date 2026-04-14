@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Argumentario Herramientas — Módulo 4 · Analizador de Estructura Financiera</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0a0a0f;
+    color: #e8e8ed;
+    overflow: hidden;
+    height: 100vh;
+    user-select: none;
+  }
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 52px;
+    background: rgba(15,15,25,0.95); backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; z-index: 100;
+  }
+  .topbar-title { font-size: 13px; font-weight: 500; color: #888; letter-spacing: 0.5px; text-transform: uppercase; }
+  .topbar-module { font-size: 12px; font-weight: 500; color: #aaa; }
+  .topbar-counter {
+    font-size: 14px; font-weight: 600; color: #fff;
+    background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3);
+    padding: 4px 14px; border-radius: 20px;
+  }
+  .topbar-keys { font-size: 11px; color: #555; }
+  .topbar-keys kbd {
+    display: inline-block; background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 4px;
+    padding: 2px 6px; font-family: inherit; font-size: 11px; color: #888; margin: 0 2px;
+  }
+  .progress-bar { position: fixed; top: 52px; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.04); z-index: 100; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #ef4444, #f97316); transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 0 2px 2px 0; }
+  .slides-viewport { position: fixed; top: 55px; left: 0; right: 0; bottom: 0; overflow: hidden; }
+  .slides-track { display: flex; height: 100%; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+  .slide {
+    min-width: 100vw; height: 100%;
+    display: flex; justify-content: center; align-items: flex-start;
+    padding: 36px 60px; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent;
+  }
+  .slide::-webkit-scrollbar { width: 6px; }
+  .slide::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+  .slide-inner { max-width: 880px; width: 100%; }
+  .slide-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .slide-number-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .module-badge {
+    font-size: 11px; font-weight: 700; color: #fff;
+    background: linear-gradient(135deg, #ef4444, #f97316);
+    padding: 3px 10px; border-radius: 12px; letter-spacing: 0.5px;
+  }
+  .module-label { font-size: 11px; font-weight: 500; color: #8888aa; letter-spacing: 0.3px; margin-bottom: 6px; }
+  .slide-number { font-size: 12px; font-weight: 600; color: #ef4444; text-transform: uppercase; letter-spacing: 1.5px; }
+  .slide-subtitle { font-size: 24px; font-weight: 600; color: #fff; line-height: 1.3; }
+  .slide-content p { font-size: 16px; line-height: 1.7; color: #c8c8d0; margin-bottom: 12px; }
+  .slide-content h3.section-title {
+    font-size: 18px; font-weight: 600; color: #ffe5e0;
+    margin: 18px 0 10px 0; padding-left: 12px; border-left: 3px solid #ef4444;
+  }
+  .slide-content strong { color: #fff; font-weight: 600; }
+  .slide-content em { color: #b0b0d0; }
+  .slide-content ul { margin: 10px 0; padding-left: 22px; }
+  .slide-content li { font-size: 15.5px; line-height: 1.65; color: #c8c8d0; margin-bottom: 7px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 14px 0 16px 0; }
+  .kpi { padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); }
+  .kpi-label { font-size: 11px; color: #8888aa; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; }
+  .kpi-value { font-size: 24px; font-weight: 700; color: #fff; }
+  .kpi-ref { font-size: 11px; color: #6d6d85; margin-top: 2px; }
+  .kpi.red { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.06); }
+  .kpi.red .kpi-value { color: #f87171; }
+  .kpi.amber { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.06); }
+  .kpi.amber .kpi-value { color: #fbbf24; }
+  .kpi.green { border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.06); }
+  .kpi.green .kpi-value { color: #34d399; }
+  table.data { width: 100%; border-collapse: collapse; margin: 12px 0 16px 0; font-size: 14.5px; }
+  table.data th, table.data td { padding: 9px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  table.data th { font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: #8888aa; font-weight: 600; }
+  table.data td { color: #c8c8d0; }
+  table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .state-red { color: #f87171; font-weight: 600; }
+  .state-amber { color: #fbbf24; font-weight: 600; }
+  .state-green { color: #34d399; font-weight: 600; }
+  .nav-arrow {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    color: #888; font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; z-index: 50;
+  }
+  .nav-arrow:hover { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4); color: #fff; }
+  .nav-arrow.disabled { opacity: 0.2; pointer-events: none; }
+  .nav-prev { left: 16px; } .nav-next { right: 16px; }
+  .minimap {
+    position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 6px; padding: 6px 14px;
+    background: rgba(15,15,25,0.9); border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.06); z-index: 50;
+  }
+  .minimap-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(239,68,68,0.25); cursor: pointer; transition: all 0.3s; }
+  .minimap-dot:hover { background: rgba(239,68,68,0.6); transform: scale(1.3); }
+  .minimap-dot.active { background: #ef4444; transform: scale(1.4); box-shadow: 0 0 8px rgba(239,68,68,0.5); }
+  .font-controls { display: flex; gap: 4px; align-items: center; }
+  .font-btn { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #888; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .font-btn:hover { background: rgba(239,68,68,0.15); color: #fff; }
+  .callout { padding: 14px 18px; border-radius: 10px; border-left: 3px solid #ef4444; background: rgba(239,68,68,0.08); margin: 12px 0; color: #e8e8ed; font-size: 15.5px; line-height: 1.6; }
+  .callout.green { border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+  .callout.amber { border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+  .callout.neutral { border-left-color: #6366f1; background: rgba(99,102,241,0.08); }
+  .callout strong { color: #fff; }
+  .quote { font-size: 18px; line-height: 1.5; color: #fff; padding: 16px 20px; background: rgba(239,68,68,0.08); border-radius: 10px; border: 1px solid rgba(239,68,68,0.2); margin: 12px 0; font-style: italic; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0; }
+  .col-box { padding: 14px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); }
+  .col-box h4 { font-size: 13px; color: #f87171; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .col-box p { font-size: 14px; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-title">Argumentario &mdash; M&oacute;dulo 4 &middot; Analizador de Estructura Financiera</span>
+  <span class="topbar-module">Caso Metalmaq Industrial S.L.</span>
+  <span class="topbar-counter" id="counter">1 / 5</span>
+  <div class="font-controls">
+    <button class="font-btn" onclick="changeFontSize(-1)">A-</button>
+    <button class="font-btn" onclick="changeFontSize(1)">A+</button>
+  </div>
+  <span class="topbar-keys"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> navegar</span>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+<div class="slides-viewport">
+  <div class="slides-track" id="track">
+
+    <!-- SLIDE 1 · El caso -->
+    <div class="slide" data-module="4">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M4</div><div class="slide-number">SLIDE 1</div></div>
+          <div class="module-label">El caso</div>
+          <div class="slide-subtitle">Leer el balance como lo lee un banco</div>
+        </div>
+        <div class="slide-content">
+          <p><strong>Metalmaq Industrial, S.L.</strong> vuelve al despacho. Vais a pedir los 300.000&nbsp;&euro; para la m&aacute;quina nueva. Pero antes, quer&eacute;is saber <strong>qu&eacute; va a ver el analista de riesgos del banco</strong> cuando abra el balance.</p>
+          <div class="quote">&laquo;No quiero que el banco nos diga no por algo que podamos corregir antes. Y si pregunta algo raro, quiero llegar con la respuesta preparada.&raquo;</div>
+          <p>El <strong>Analizador de Estructura Financiera</strong> hace exactamente eso: <strong>reorganiza el balance como lo ve un banco</strong>, calcula los 6 ratios de endeudamiento clave, detecta maquillaje contable y genera el <strong>Informe Bancario profesional</strong> que podemos entregar junto a la solicitud.</p>
+          <h3 class="section-title">Antes de empezar: 2 conceptos que siempre se mezclan</h3>
+          <div class="two-col">
+            <div class="col-box">
+              <h4>Liquidez</h4>
+              <p><em>&iquest;Puede pagar lo que vence en los pr&oacute;ximos 12 meses?</em></p>
+              <p>Problema de <strong>corto plazo</strong>. Se resuelve con p&oacute;liza, factoring, mejora de cobros.</p>
+            </div>
+            <div class="col-box">
+              <h4>Solvencia</h4>
+              <p><em>&iquest;Puede pagar <strong>toda</strong> su deuda con sus activos?</em></p>
+              <p>Problema <strong>estructural</strong>. Se resuelve reestructurando, aportando capital o vendiendo activos.</p>
+            </div>
+          </div>
+          <p><em>La herramienta analiza las dos cosas a la vez. Pero la diferencia importa: a un cliente con problema de liquidez le propon&eacute;is soluciones distintas que a uno con problema de solvencia.</em></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 · Balance de Gestión + FM/NOF -->
+    <div class="slide" data-module="4">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M4</div><div class="slide-number">SLIDE 2</div></div>
+          <div class="module-label">Primer paso &middot; reordenamos el balance como un banco</div>
+          <div class="slide-subtitle">&iquest;D&oacute;nde est&aacute; el dinero y qui&eacute;n lo ha puesto?</div>
+        </div>
+        <div class="slide-content">
+          <p>Metemos el balance contable en la hoja DATOS. La herramienta autom&aacute;ticamente lo reorganiza en dos columnas simples:</p>
+          <table class="data">
+            <thead><tr><th colspan="2">D&Oacute;NDE EST&Aacute; EL DINERO (inversi&oacute;n)</th><th colspan="2">QUI&Eacute;N LO HA PUESTO (financiaci&oacute;n)</th></tr></thead>
+            <tbody>
+              <tr><td>Activo Fijo <em>(m&aacute;quinas, nave)</em></td><td class="num">430.000</td><td>Fondos propios</td><td class="num">382.500</td></tr>
+              <tr><td>NOF <em>(clientes + stock &minus; proveedores)</em></td><td class="num">208.000</td><td>Deuda a largo plazo</td><td class="num">205.000</td></tr>
+              <tr><td>Caja</td><td class="num">33.500</td><td>Deuda a corto plazo</td><td class="num">178.000</td></tr>
+              <tr><td><strong>TOTAL</strong></td><td class="num"><strong>765.500</strong></td><td><strong>TOTAL</strong></td><td class="num"><strong>765.500</strong></td></tr>
+            </tbody>
+          </table>
+          <h3 class="section-title">La pregunta clave: Fondo de Maniobra vs NOF</h3>
+          <p>El <strong>Fondo de Maniobra</strong> es el dinero <em>a largo plazo</em> (fondos propios + deuda a largo) que queda despu&eacute;s de pagar el activo fijo. Es la colchoneta. Luego lo compara con las NOF que la empresa necesita para su d&iacute;a a d&iacute;a:</p>
+          <div class="kpi-grid">
+            <div class="kpi green">
+              <div class="kpi-label">Fondo de Maniobra</div>
+              <div class="kpi-value">157.500 &euro;</div>
+              <div class="kpi-ref">Recursos propios sobrantes</div>
+            </div>
+            <div class="kpi amber">
+              <div class="kpi-label">NOF (lo que necesita)</div>
+              <div class="kpi-value">208.000 &euro;</div>
+              <div class="kpi-ref">Dinero atrapado en el ciclo</div>
+            </div>
+            <div class="kpi amber">
+              <div class="kpi-label">Gap a cubrir con banco</div>
+              <div class="kpi-value">50.500 &euro;</div>
+              <div class="kpi-ref">Diferencia</div>
+            </div>
+          </div>
+          <div class="callout amber">
+            <strong>Diagn&oacute;stico: TENSI&Oacute;N CONTROLADA.</strong> El Fondo de Maniobra es positivo (la empresa paga su activo fijo con recursos a largo), pero no llega a cubrir todas las NOF. Le faltan 50.500&nbsp;&euro; que cubre con la p&oacute;liza. <em>No es alarma: es el patr&oacute;n normal de una empresa industrial. Pero hay que dec&iacute;rselo al banco antes de que lo pregunte.</em>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 · Los 6 ratios -->
+    <div class="slide" data-module="4">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M4</div><div class="slide-number">SLIDE 3</div></div>
+          <div class="module-label">Segundo paso &middot; los 6 ratios que mira el banco</div>
+          <div class="slide-subtitle">5 en verde, 1 en rojo: hay una oportunidad de negociar</div>
+        </div>
+        <div class="slide-content">
+          <p>El Excel calcula autom&aacute;ticamente los <strong>6 ratios de endeudamiento</strong> que usa cualquier analista de riesgos:</p>
+          <table class="data">
+            <thead><tr><th>Ratio</th><th>Qu&eacute; mide en llano</th><th>Metalmaq</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr><td>Endeudamiento total</td><td>% del activo financiado con deuda ajena</td><td>50%</td><td class="state-green">OK (l&iacute;mite 60%)</td></tr>
+              <tr><td>Autonom&iacute;a financiera</td><td>% del activo que pone la propia empresa</td><td>50%</td><td class="state-green">OK (m&iacute;nimo 40%)</td></tr>
+              <tr><td>Deuda neta &divide; beneficio bruto</td><td>A&ntilde;os de EBITDA para cancelar la deuda</td><td>1,5</td><td class="state-green">OK (l&iacute;mite 2)</td></tr>
+              <tr><td>Cobertura de la cuota (DSCR)</td><td>Cu&aacute;ntas veces puede pagar la cuota</td><td>4,00</td><td class="state-green">OK (m&iacute;nimo 1,25)</td></tr>
+              <tr><td>Intereses &divide; beneficio</td><td>% del beneficio que se comen los intereses</td><td>18%</td><td class="state-green">OK (l&iacute;mite 30%)</td></tr>
+              <tr><td>Coste medio de la deuda</td><td>% medio que est&aacute; pagando en intereses</td><td>7,8%</td><td class="state-red">Alto</td></tr>
+            </tbody>
+          </table>
+          <div class="callout green">
+            <strong>Gran noticia:</strong> Metalmaq tiene una estructura financiera <strong>s&oacute;lida</strong>. 5 ratios de 6 en verde. El banco va a recibirla bien.
+          </div>
+          <div class="callout">
+            <strong>Hallazgo interesante:</strong> el coste medio de la deuda es del 7,8% &mdash; demasiado alto para el mercado actual. <em>Eso significa que Metalmaq est&aacute; pagando de m&aacute;s en pr&eacute;stamos existentes</em>. Aprovechamos la negociaci&oacute;n del nuevo pr&eacute;stamo para <strong>renegociar tambi&eacute;n los viejos</strong> a un tipo menor. Como tiene buenos ratios, tiene poder de negociaci&oacute;n.
+          </div>
+          <p><strong>&iquest;Y con la nueva cuota de 51.000&nbsp;&euro;?</strong> La cobertura bajar&iacute;a de 4,00 a <strong class="state-amber">1,48</strong> &mdash; sigue siendo viable, pero ajustado. Igual que vimos en el m&oacute;dulo 2, se recomienda alargar a 10 a&ntilde;os para quedar c&oacute;modamente en verde.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 · Maquillaje contable -->
+    <div class="slide" data-module="4">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M4</div><div class="slide-number">SLIDE 4</div></div>
+          <div class="module-label">Tercer paso &middot; &iquest;hay maquillaje contable?</div>
+          <div class="slide-subtitle">Qu&eacute; quedar&iacute;a del balance si somos 100% sinceros</div>
+        </div>
+        <div class="slide-content">
+          <p>El <strong>maquillaje contable</strong> es presentar un balance que parece mejor de lo que es. No siempre es fraude: a veces es simplemente <em>no haber provisionado lo que hay que provisionar</em> o <em>no haber reconocido p&eacute;rdidas latentes</em>. La herramienta revisa 4 se&ntilde;ales autom&aacute;ticamente:</p>
+          <table class="data">
+            <thead><tr><th>Se&ntilde;al</th><th>Qu&eacute; busca</th><th>En Metalmaq</th></tr></thead>
+            <tbody>
+              <tr><td>Clientes antiguos sin provisionar</td><td>Facturas con m&aacute;s de 180 d&iacute;as sin cobrar</td><td class="state-amber">15.000&nbsp;&euro;</td></tr>
+              <tr><td>Stock obsoleto sin ajustar</td><td>Mercanc&iacute;a que ya no vale lo que marca el balance</td><td class="state-green">0</td></tr>
+              <tr><td>Socios deudores con la empresa</td><td>Dinero que los socios deben a la sociedad</td><td class="state-green">0</td></tr>
+              <tr><td>Gastos &laquo;activados&raquo; indebidamente</td><td>Apuntes al activo que deber&iacute;an ir a gasto</td><td class="state-green">0</td></tr>
+            </tbody>
+          </table>
+          <p>La herramienta recalcula autom&aacute;ticamente el <strong>balance ajustado</strong> &mdash; qu&eacute; aparecer&iacute;a si hici&eacute;ramos todas las provisiones:</p>
+          <div class="kpi-grid">
+            <div class="kpi green">
+              <div class="kpi-label">Autonom&iacute;a oficial</div>
+              <div class="kpi-value">50,0%</div>
+              <div class="kpi-ref">Balance tal cual est&aacute;</div>
+            </div>
+            <div class="kpi green">
+              <div class="kpi-label">Autonom&iacute;a ajustada</div>
+              <div class="kpi-value">49,0%</div>
+              <div class="kpi-ref">Provisionando 15k&euro; de clientes</div>
+            </div>
+          </div>
+          <div class="callout green">
+            <strong>Caso Metalmaq: el impacto es m&iacute;nimo.</strong> Solo hay 15.000&nbsp;&euro; de clientes antiguos que deber&iacute;an provisionarse. El balance ajustado sigue en zona verde. Es una <em>tarea de mejora pendiente</em>, no una alarma.
+          </div>
+          <div class="callout neutral">
+            <strong>Cons. pr&aacute;ctico:</strong> mejor <strong>mencionarlo proactivamente</strong> en el Informe Bancario (&laquo;recomendamos provisionar 15k este ejercicio&raquo;) que esperar a que el analista lo detecte. La transparencia genera confianza. El silencio, dudas.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 · Informe Bancario + Qué le decís -->
+    <div class="slide" data-module="4">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M4</div><div class="slide-number">SLIDE 5</div></div>
+          <div class="module-label">El Informe Bancario profesional</div>
+          <div class="slide-subtitle">Qu&eacute; entregar al banco junto con la solicitud</div>
+        </div>
+        <div class="slide-content">
+          <p>La &uacute;ltima hoja genera autom&aacute;ticamente el <strong>Informe Bancario</strong>, listo para imprimir y adjuntar a la solicitud de financiaci&oacute;n. Cubre 4 apartados:</p>
+          <ul>
+            <li><strong>Contexto de la empresa</strong> &mdash; raz&oacute;n social, sector, empleados, facturaci&oacute;n.</li>
+            <li><strong>Situaci&oacute;n financiera</strong> &mdash; los 6 ratios ya calculados, con sem&aacute;foro.</li>
+            <li><strong>Motivo de la solicitud</strong> &mdash; destino, importe, plazo (lo rellen&aacute;is vosotros).</li>
+            <li><strong>Capacidad de devoluci&oacute;n</strong> &mdash; EBITDA, servicio de deuda, cobertura antes y despu&eacute;s de la nueva operaci&oacute;n.</li>
+          </ul>
+          <div class="callout neutral">
+            <strong>&iquest;Por qu&eacute; esto cambia el juego?</strong> Porque el analista de riesgos del banco <em>no tiene que calcular nada</em>. No tiene que buscar datos. No tiene que interpretar el balance. Todo est&aacute; pre-digerido. <strong>Cuanto menos trabajo le damos al analista, m&aacute;s r&aacute;pida es la respuesta y mayor es la probabilidad de aprobaci&oacute;n</strong>.
+          </div>
+          <h3 class="section-title">Qu&eacute; le dec&iacute;s a Metalmaq</h3>
+          <ul>
+            <li><strong>1. Tu estructura financiera es s&oacute;lida.</strong> <em>5 ratios de 6 en verde. Tienes buena imagen ante cualquier banco.</em></li>
+            <li><strong>2. La nueva operaci&oacute;n es viable, pero ajustada (cobertura 1,48).</strong> <em>Te conviene ampliar a 10 a&ntilde;os para quedarte c&oacute;modamente en verde.</em></li>
+            <li><strong>3. Aprovecha para renegociar la deuda vieja.</strong> <em>Est&aacute;s pagando un 7,8% cuando el mercado est&aacute; m&aacute;s bajo. Con tus ratios tienes poder para bajarlo.</em></li>
+            <li><strong>4. Provisiona esos 15.000&nbsp;&euro; de clientes antiguos este ejercicio.</strong> <em>As&iacute; presentas el balance limpio antes de que el banco pregunte.</em></li>
+            <li><strong>5. Lleva el Informe Bancario al analista.</strong> <em>Te ahorras semanas de ida y vuelta.</em></li>
+          </ul>
+          <div class="callout green">
+            <strong>El valor de entregar esto:</strong> dej&aacute;is de ser &laquo;los que hacen la contabilidad&raquo; para ser <strong>los que preparan el expediente bancario profesional</strong>. Es lo que hace un director financiero externo. Y es exactamente lo que los clientes est&aacute;n dispuestos a pagar.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="nav-arrow nav-prev" id="prevBtn" onclick="go(-1)">&larr;</div>
+<div class="nav-arrow nav-next" id="nextBtn" onclick="go(1)">&rarr;</div>
+
+<div class="minimap" id="minimap">
+  <div class="minimap-dot active" data-i="0" onclick="goTo(0)"></div>
+  <div class="minimap-dot" data-i="1" onclick="goTo(1)"></div>
+  <div class="minimap-dot" data-i="2" onclick="goTo(2)"></div>
+  <div class="minimap-dot" data-i="3" onclick="goTo(3)"></div>
+  <div class="minimap-dot" data-i="4" onclick="goTo(4)"></div>
+</div>
+
+<script>
+const total = 5;
+let current = 0;
+let fontSize = 16;
+
+const track = document.getElementById('track');
+const counter = document.getElementById('counter');
+const progress = document.getElementById('progress');
+const dots = document.querySelectorAll('.minimap-dot');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const allSlides = document.querySelectorAll('.slide');
+
+function update() {
+  track.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+  counter.textContent = (current + 1) + ' / ' + total;
+  progress.style.width = (((current + 1) / total) * 100) + '%';
+  dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+  prevBtn.classList.toggle('disabled', current === 0);
+  nextBtn.classList.toggle('disabled', current === total - 1);
+  allSlides[current].scrollTop = 0;
+}
+
+function go(dir) {
+  var next = current + dir;
+  if (next >= 0 && next < total) { current = next; update(); }
+}
+
+function goTo(i) { current = i; update(); }
+
+function changeFontSize(delta) {
+  fontSize = Math.max(12, Math.min(24, fontSize + delta));
+  document.querySelectorAll('.slide-content p, .slide-content li').forEach(function(p) {
+    p.style.fontSize = fontSize + 'px';
+  });
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); go(1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(-1); }
+  else if (e.key === 'Home') { e.preventDefault(); current = 0; update(); }
+  else if (e.key === 'End') { e.preventDefault(); current = total - 1; update(); }
+  else if (e.key === '+' || e.key === '=') { changeFontSize(1); }
+  else if (e.key === '-') { changeFontSize(-1); }
+});
+
+var touchStartX = 0;
+document.addEventListener('touchstart', function(e) { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', function(e) {
+  var diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 50) go(diff > 0 ? 1 : -1);
+});
+
+update();
+</script>
+</body>
+</html>

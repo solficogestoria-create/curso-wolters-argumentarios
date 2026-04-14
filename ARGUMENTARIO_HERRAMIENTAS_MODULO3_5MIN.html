@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Argumentario Herramientas — Módulo 3 · Cuadro de Mando del Circulante</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0a0a0f;
+    color: #e8e8ed;
+    overflow: hidden;
+    height: 100vh;
+    user-select: none;
+  }
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 52px;
+    background: rgba(15,15,25,0.95); backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; z-index: 100;
+  }
+  .topbar-title { font-size: 13px; font-weight: 500; color: #888; letter-spacing: 0.5px; text-transform: uppercase; }
+  .topbar-module { font-size: 12px; font-weight: 500; color: #aaa; }
+  .topbar-counter {
+    font-size: 14px; font-weight: 600; color: #fff;
+    background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3);
+    padding: 4px 14px; border-radius: 20px;
+  }
+  .topbar-keys { font-size: 11px; color: #555; }
+  .topbar-keys kbd {
+    display: inline-block; background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 4px;
+    padding: 2px 6px; font-family: inherit; font-size: 11px; color: #888; margin: 0 2px;
+  }
+  .progress-bar { position: fixed; top: 52px; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.04); z-index: 100; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #f59e0b, #f97316); transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 0 2px 2px 0; }
+  .slides-viewport { position: fixed; top: 55px; left: 0; right: 0; bottom: 0; overflow: hidden; }
+  .slides-track { display: flex; height: 100%; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+  .slide {
+    min-width: 100vw; height: 100%;
+    display: flex; justify-content: center; align-items: flex-start;
+    padding: 36px 60px; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent;
+  }
+  .slide::-webkit-scrollbar { width: 6px; }
+  .slide::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+  .slide-inner { max-width: 880px; width: 100%; }
+  .slide-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .slide-number-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .module-badge {
+    font-size: 11px; font-weight: 700; color: #fff;
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    padding: 3px 10px; border-radius: 12px; letter-spacing: 0.5px;
+  }
+  .module-label { font-size: 11px; font-weight: 500; color: #8888aa; letter-spacing: 0.3px; margin-bottom: 6px; }
+  .slide-number { font-size: 12px; font-weight: 600; color: #f59e0b; text-transform: uppercase; letter-spacing: 1.5px; }
+  .slide-subtitle { font-size: 24px; font-weight: 600; color: #fff; line-height: 1.3; }
+  .slide-content p { font-size: 16px; line-height: 1.7; color: #c8c8d0; margin-bottom: 12px; }
+  .slide-content h3.section-title {
+    font-size: 18px; font-weight: 600; color: #fff5e0;
+    margin: 18px 0 10px 0; padding-left: 12px; border-left: 3px solid #f59e0b;
+  }
+  .slide-content strong { color: #fff; font-weight: 600; }
+  .slide-content em { color: #b0b0d0; }
+  .slide-content ul { margin: 10px 0; padding-left: 22px; }
+  .slide-content li { font-size: 15.5px; line-height: 1.65; color: #c8c8d0; margin-bottom: 7px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 14px 0 16px 0; }
+  .kpi { padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); }
+  .kpi-label { font-size: 11px; color: #8888aa; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; }
+  .kpi-value { font-size: 24px; font-weight: 700; color: #fff; }
+  .kpi-ref { font-size: 11px; color: #6d6d85; margin-top: 2px; }
+  .kpi.red { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.06); }
+  .kpi.red .kpi-value { color: #f87171; }
+  .kpi.amber { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.06); }
+  .kpi.amber .kpi-value { color: #fbbf24; }
+  .kpi.green { border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.06); }
+  .kpi.green .kpi-value { color: #34d399; }
+  table.data { width: 100%; border-collapse: collapse; margin: 12px 0 16px 0; font-size: 14.5px; }
+  table.data th, table.data td { padding: 9px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  table.data th { font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: #8888aa; font-weight: 600; }
+  table.data td { color: #c8c8d0; }
+  table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .state-red { color: #f87171; font-weight: 600; }
+  .state-amber { color: #fbbf24; font-weight: 600; }
+  .state-green { color: #34d399; font-weight: 600; }
+  .nav-arrow {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    color: #888; font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; z-index: 50;
+  }
+  .nav-arrow:hover { background: rgba(245,158,11,0.15); border-color: rgba(245,158,11,0.4); color: #fff; }
+  .nav-arrow.disabled { opacity: 0.2; pointer-events: none; }
+  .nav-prev { left: 16px; } .nav-next { right: 16px; }
+  .minimap {
+    position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 6px; padding: 6px 14px;
+    background: rgba(15,15,25,0.9); border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.06); z-index: 50;
+  }
+  .minimap-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(245,158,11,0.25); cursor: pointer; transition: all 0.3s; }
+  .minimap-dot:hover { background: rgba(245,158,11,0.6); transform: scale(1.3); }
+  .minimap-dot.active { background: #f59e0b; transform: scale(1.4); box-shadow: 0 0 8px rgba(245,158,11,0.5); }
+  .font-controls { display: flex; gap: 4px; align-items: center; }
+  .font-btn { width: 28px; height: 28px; border-radius: 6px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #888; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .font-btn:hover { background: rgba(245,158,11,0.15); color: #fff; }
+  .callout { padding: 14px 18px; border-radius: 10px; border-left: 3px solid #f59e0b; background: rgba(245,158,11,0.08); margin: 12px 0; color: #e8e8ed; font-size: 15.5px; line-height: 1.6; }
+  .callout.red { border-left-color: #ef4444; background: rgba(239,68,68,0.08); }
+  .callout.green { border-left-color: #10b981; background: rgba(16,185,129,0.08); }
+  .callout strong { color: #fff; }
+  .quote { font-size: 18px; line-height: 1.5; color: #fff; padding: 16px 20px; background: rgba(245,158,11,0.08); border-radius: 10px; border: 1px solid rgba(245,158,11,0.2); margin: 12px 0; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-title">Argumentario &mdash; M&oacute;dulo 3 &middot; Cuadro de Mando del Circulante</span>
+  <span class="topbar-module">Caso SaborMed S.L. &middot; la trampa del crecimiento</span>
+  <span class="topbar-counter" id="counter">1 / 5</span>
+  <div class="font-controls">
+    <button class="font-btn" onclick="changeFontSize(-1)">A-</button>
+    <button class="font-btn" onclick="changeFontSize(1)">A+</button>
+  </div>
+  <span class="topbar-keys"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> navegar</span>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+<div class="slides-viewport">
+  <div class="slides-track" id="track">
+
+    <!-- SLIDE 1 · El caso -->
+    <div class="slide" data-module="3">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M3</div><div class="slide-number">SLIDE 1</div></div>
+          <div class="module-label">El caso</div>
+          <div class="slide-subtitle">Su mejor a&ntilde;o &mdash; y est&aacute; en n&uacute;meros rojos</div>
+        </div>
+        <div class="slide-content">
+          <p><strong>SaborMed, S.L.</strong> ha tenido el mejor a&ntilde;o de su historia: ha pasado de facturar 1.000.000&nbsp;&euro; a 1.300.000&nbsp;&euro;. Un <strong>+30% de crecimiento</strong>. Y ha ganado 52.000&nbsp;&euro; en vez de 40.000. El empresario est&aacute; contento.</p>
+          <p>Pero llega al despacho con esta cara y os dice:</p>
+          <div class="quote">&laquo;No lo entiendo. He crecido un 30%, he ganado m&aacute;s&hellip; y mi cuenta del banco est&aacute; en n&uacute;meros rojos. He acabado el a&ntilde;o con -10.000&nbsp;&euro; y he tenido que abrir una p&oacute;liza de 100.000&nbsp;&euro; que ya est&aacute; al 85% del tope. &iquest;Qu&eacute; ha pasado?&raquo;</div>
+          <p>Esto se llama <strong>la trampa del crecimiento</strong>: una empresa gana dinero en la cuenta de resultados pero se queda sin caja. Parece imposible, pero pasa <em>todo el tiempo</em>. Y la mayor&iacute;a de asesores no sabe diagnosticarlo.</p>
+          <p>Con el <strong>Cuadro de Mando del Circulante</strong> vais a responderle en 5 minutos &mdash; con n&uacute;meros claros &mdash; <strong>exactamente d&oacute;nde se ha ido el dinero</strong>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 · El culpable -->
+    <div class="slide" data-module="3">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M3</div><div class="slide-number">SLIDE 2</div></div>
+          <div class="module-label">El culpable: el circulante se ha comido el beneficio</div>
+          <div class="slide-subtitle">Las NOF han subido 80.000&nbsp;&euro; &mdash; y solo ha ganado 52.000</div>
+        </div>
+        <div class="slide-content">
+          <p>Metemos en la herramienta las cifras del balance de SaborMed. La hoja de <strong>NOF</strong> nos dice cu&aacute;nto dinero necesita la empresa tener &laquo;aparcado&raquo; para funcionar:</p>
+          <table class="data">
+            <thead><tr><th>Componente</th><th class="num">A&ntilde;o anterior</th><th class="num">Este a&ntilde;o</th><th class="num">Variaci&oacute;n</th></tr></thead>
+            <tbody>
+              <tr><td>(+) Clientes pendientes de cobro</td><td class="num">180.000</td><td class="num">250.000</td><td class="num state-red">+70.000</td></tr>
+              <tr><td>(+) Stock en almac&eacute;n</td><td class="num">60.000</td><td class="num">90.000</td><td class="num state-red">+30.000</td></tr>
+              <tr><td>(&minus;) Proveedores pendientes de pagar</td><td class="num">90.000</td><td class="num">110.000</td><td class="num state-green">+20.000</td></tr>
+              <tr><td><strong>= NOF (dinero atrapado)</strong></td><td class="num"><strong>150.000</strong></td><td class="num"><strong>230.000</strong></td><td class="num state-red"><strong>+80.000 &euro;</strong></td></tr>
+            </tbody>
+          </table>
+          <p>Ahora pon al lado el beneficio del a&ntilde;o:</p>
+          <div class="kpi-grid">
+            <div class="kpi green">
+              <div class="kpi-label">Ha ganado</div>
+              <div class="kpi-value">52.000 &euro;</div>
+              <div class="kpi-ref">Beneficio de explotaci&oacute;n</div>
+            </div>
+            <div class="kpi red">
+              <div class="kpi-label">Ha necesitado m&aacute;s circulante</div>
+              <div class="kpi-value">80.000 &euro;</div>
+              <div class="kpi-ref">Las NOF han subido</div>
+            </div>
+            <div class="kpi red">
+              <div class="kpi-label">D&eacute;ficit</div>
+              <div class="kpi-value">&minus;28.000 &euro;</div>
+              <div class="kpi-ref">Lo que falta en caja</div>
+            </div>
+          </div>
+          <div class="callout red">
+            <strong>Ah&iacute; est&aacute; la respuesta:</strong> el beneficio de 52.000&nbsp;&euro; no es caja, es un apunte contable (ventas a clientes que tardan en pagar). Mientras tanto, la empresa ha tenido que poner <strong>80.000&nbsp;&euro; m&aacute;s de su bolsillo</strong> para cubrir el aumento de clientes pendientes y de stock. Faltan 28.000&nbsp;&euro;. Y eso cuadra casi exactamente con el desplome de tesorer&iacute;a: de +25.000 a &minus;10.000 = <strong>&minus;35.000&nbsp;&euro;</strong>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 · Ratios empeorando -->
+    <div class="slide" data-module="3">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M3</div><div class="slide-number">SLIDE 3</div></div>
+          <div class="module-label">Y adem&aacute;s gestiona peor</div>
+          <div class="slide-subtitle">Los 3 ratios del circulante han empeorado a la vez</div>
+        </div>
+        <div class="slide-content">
+          <p>La siguiente hoja de la herramienta convierte las cifras en <strong>d&iacute;as</strong> &mdash; as&iacute; se ve clar&iacute;simo:</p>
+          <table class="data">
+            <thead><tr><th>Indicador</th><th class="num">Antes</th><th class="num">Ahora</th><th>Qu&eacute; significa</th></tr></thead>
+            <tbody>
+              <tr><td>D&iacute;as en cobrar</td><td class="num">66</td><td class="num state-red">70</td><td>Cobra 4 d&iacute;as m&aacute;s tarde</td></tr>
+              <tr><td>D&iacute;as de stock en almac&eacute;n</td><td class="num">31</td><td class="num state-red">36</td><td>Acumula 5 d&iacute;as m&aacute;s</td></tr>
+              <tr><td>D&iacute;as en pagar proveedores</td><td class="num">47</td><td class="num state-red">44</td><td>Paga 3 d&iacute;as antes</td></tr>
+              <tr><td><strong>Ciclo total</strong> <em>(cobro + stock &minus; pago)</em></td><td class="num"><strong>50</strong></td><td class="num state-red"><strong>62</strong></td><td><strong>12 d&iacute;as m&aacute;s de dinero fuera</strong></td></tr>
+            </tbody>
+          </table>
+          <div class="callout red">
+            <strong>Tres golpes simult&aacute;neos:</strong> cobra m&aacute;s tarde, acumula m&aacute;s stock y encima paga antes a los proveedores. <em>Todo lo contrario de lo que deber&iacute;a hacer una empresa que crece.</em>
+          </div>
+          <p>&iquest;Cu&aacute;nto le cuesta esto en euros? La herramienta lo calcula sola:</p>
+          <div class="callout" style="text-align:center; font-size:17px; font-weight:600; color:#fff;">
+            SaborMed vende 3.562&nbsp;&euro;/d&iacute;a &times; 62 d&iacute;as de ciclo =<br>
+            <span class="state-red" style="font-size:24px;">221.000&nbsp;&euro; permanentemente bloqueados</span>
+          </div>
+          <p>Si el ciclo hubiera seguido en 50 d&iacute;as (como el a&ntilde;o anterior), las NOF habr&iacute;an subido solo <strong>45.000&nbsp;&euro;</strong> (lo proporcional al crecimiento). <strong>Los 35.000&nbsp;&euro; extra son pura gesti&oacute;n ineficiente</strong>. Crecer no es gratis, y SaborMed lo est&aacute; pagando caro.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 · Señales -->
+    <div class="slide" data-module="3">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M3</div><div class="slide-number">SLIDE 4</div></div>
+          <div class="module-label">La herramienta enciende las alarmas</div>
+          <div class="slide-subtitle">3 rojas de 4 &rarr; diagn&oacute;stico CR&Iacute;TICO</div>
+        </div>
+        <div class="slide-content">
+          <p>En la hoja de <strong>Se&ntilde;ales de Alarma</strong>, el Excel revisa autom&aacute;ticamente cuatro cosas clave:</p>
+          <table class="data">
+            <thead><tr><th>Pregunta</th><th>En SaborMed</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr><td>&iquest;Los clientes crecen m&aacute;s que las ventas?</td><td>Clientes +39% vs ventas +30%</td><td class="state-red">ALARMA</td></tr>
+              <tr><td>&iquest;El stock crece m&aacute;s que las ventas?</td><td>Stock +50% vs ventas +30%</td><td class="state-red">ALARMA</td></tr>
+              <tr><td>&iquest;Los proveedores aprietan?</td><td>Proveedores crecen +22% (aguantan)</td><td class="state-green">OK</td></tr>
+              <tr><td>&iquest;La p&oacute;liza est&aacute; al tope?</td><td>85.000 / 100.000 = 85%</td><td class="state-red">ALARMA</td></tr>
+            </tbody>
+          </table>
+          <div class="callout red">
+            <strong>3 alarmas activas &rarr; diagn&oacute;stico <span class="state-red">CR&Iacute;TICO</span>.</strong><br>
+            SaborMed no solo ha crecido sin preparar el circulante: <em>acumula stock al doble de velocidad que las ventas</em> y ya depende estructuralmente de la p&oacute;liza. Si el banco un d&iacute;a no se la renueva, tiene un problema serio en cuesti&oacute;n de d&iacute;as.
+          </div>
+          <p><em>Esto no es opini&oacute;n vuestra. Son c&aacute;lculos autom&aacute;ticos sobre la propia contabilidad del cliente. La herramienta adem&aacute;s ofrece una <strong>previsi&oacute;n de tesorer&iacute;a a 13 semanas</strong> para ver en qu&eacute; semanas exactas va a haber tensi&oacute;n de caja &mdash; y poder anticiparse.</em></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 · Qué le decís -->
+    <div class="slide" data-module="3">
+      <div class="slide-inner">
+        <div class="slide-header">
+          <div class="slide-number-row"><div class="module-badge">M3</div><div class="slide-number">SLIDE 5</div></div>
+          <div class="module-label">Qu&eacute; le dec&iacute;s a SaborMed</div>
+          <div class="slide-subtitle">Le explic&aacute;is por qu&eacute; gana pero no tiene caja &mdash; y qu&eacute; hacer</div>
+        </div>
+        <div class="slide-content">
+          <div class="quote">&laquo;Has ganado 52.000&nbsp;&euro;, pero tu circulante necesita 80.000&nbsp;&euro; m&aacute;s que el a&ntilde;o pasado. Eso explica los &minus;35.000&nbsp;&euro; de tu cuenta. No tienes un problema de beneficio, tienes un <strong>problema de gesti&oacute;n del circulante</strong>. Y se arregla.&raquo;</div>
+          <ul>
+            <li><strong>1. Aprieta los cobros.</strong> <em>Tus clientes han pasado de 66 a 70 d&iacute;as. Si vuelves a 60: descuento por pronto pago del 1-1,5%, o factoring con el banco (te adelantan el cobro a cambio de una comisi&oacute;n). Cada d&iacute;a de cobro menos son 3.500&nbsp;&euro; liberados.</em></li>
+            <li><strong>2. Revisa el stock.</strong> <em>Has pasado de 31 a 36 d&iacute;as. El 50% del aumento del stock es desproporcionado para un +30% de ventas. Probablemente hay productos que no rotan. Cat&aacute;logo: reducir referencias de poca salida.</em></li>
+            <li><strong>3. Re-negocia con proveedores.</strong> <em>Has empezado a pagarles antes (de 47 a 44 d&iacute;as). Eso es dinero que est&aacute;s regalando. Vuelve a 45-50 d&iacute;as como m&iacute;nimo. Es gratis.</em></li>
+            <li><strong>4. Dimensiona bien la p&oacute;liza.</strong> <em>Tus NOF son 230.000&nbsp;&euro; y tu p&oacute;liza es de 100.000. Eres dependiente de ella y adem&aacute;s insuficiente. O la ampl&iacute;as a 150-200.000&nbsp;&euro;, o abres una segunda l&iacute;nea en otro banco. Nunca dependas de uno solo.</em></li>
+          </ul>
+          <div class="callout green">
+            <strong>La promesa concreta:</strong> si SaborMed baja el ciclo de 62 a 50 d&iacute;as, libera <strong>42.700&nbsp;&euro; de tesorer&iacute;a</strong> en el pr&oacute;ximo trimestre. Suficiente para salir de n&uacute;meros rojos y bajar la dependencia de la p&oacute;liza.
+          </div>
+          <div class="callout">
+            <strong>Y aqu&iacute; est&aacute; el valor de entregar esto cada trimestre:</strong> dej&aacute;is de ser &laquo;el que presenta los impuestos&raquo; y pas&aacute;is a ser <strong>el que le dice al cliente qu&eacute; est&aacute; pasando con su caja y qu&eacute; hacer al respecto</strong>. Eso es lo que fideliza al cliente durante a&ntilde;os.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="nav-arrow nav-prev" id="prevBtn" onclick="go(-1)">&larr;</div>
+<div class="nav-arrow nav-next" id="nextBtn" onclick="go(1)">&rarr;</div>
+
+<div class="minimap" id="minimap">
+  <div class="minimap-dot active" data-i="0" onclick="goTo(0)"></div>
+  <div class="minimap-dot" data-i="1" onclick="goTo(1)"></div>
+  <div class="minimap-dot" data-i="2" onclick="goTo(2)"></div>
+  <div class="minimap-dot" data-i="3" onclick="goTo(3)"></div>
+  <div class="minimap-dot" data-i="4" onclick="goTo(4)"></div>
+</div>
+
+<script>
+const total = 5;
+let current = 0;
+let fontSize = 16;
+
+const track = document.getElementById('track');
+const counter = document.getElementById('counter');
+const progress = document.getElementById('progress');
+const dots = document.querySelectorAll('.minimap-dot');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const allSlides = document.querySelectorAll('.slide');
+
+function update() {
+  track.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+  counter.textContent = (current + 1) + ' / ' + total;
+  progress.style.width = (((current + 1) / total) * 100) + '%';
+  dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+  prevBtn.classList.toggle('disabled', current === 0);
+  nextBtn.classList.toggle('disabled', current === total - 1);
+  allSlides[current].scrollTop = 0;
+}
+
+function go(dir) {
+  var next = current + dir;
+  if (next >= 0 && next < total) { current = next; update(); }
+}
+
+function goTo(i) { current = i; update(); }
+
+function changeFontSize(delta) {
+  fontSize = Math.max(12, Math.min(24, fontSize + delta));
+  document.querySelectorAll('.slide-content p, .slide-content li').forEach(function(p) {
+    p.style.fontSize = fontSize + 'px';
+  });
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); go(1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(-1); }
+  else if (e.key === 'Home') { e.preventDefault(); current = 0; update(); }
+  else if (e.key === 'End') { e.preventDefault(); current = total - 1; update(); }
+  else if (e.key === '+' || e.key === '=') { changeFontSize(1); }
+  else if (e.key === '-') { changeFontSize(-1); }
+});
+
+var touchStartX = 0;
+document.addEventListener('touchstart', function(e) { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', function(e) {
+  var diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 50) go(diff > 0 ? 1 : -1);
+});
+
+update();
+</script>
+</body>
+</html>
